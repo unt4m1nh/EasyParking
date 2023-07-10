@@ -6,12 +6,13 @@ import {
     TouchableOpacity,
     PermissionsAndroid,
     Button,
+    ScrollView,
 } from 'react-native'
 
 import MapView, { Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import Geolocation from 'react-native-geolocation-service';
-
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import data from './data/data';
 
 function MapScreen({ navigation }) {
@@ -49,14 +50,32 @@ function MapScreen({ navigation }) {
                 // See error code charts below.
                 console.log(error.code, error.message);
             },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+            { enableHighAccuracy: true, timeout: 2000, maximumAge: 10000 }
         )
     }
 
     getLocation();
 
     return (
-        <View style={styles.container}>
+        <View style={{ marginTop: 0, flex: 1 }}>
+            <GooglePlacesAutocomplete
+                placeholder='Search'
+                autoFocus={false}
+                returnKeyType={'default'}
+                fetchDetails={true}
+                onPress={(data, details = null) => {
+                    // 'details' is provided when fetchDetails = true
+                    console.log(data, details);
+                }}
+                query={{
+                    key: 'AIzaSyA5MYKgm_x0o_M0RLltOH1KtlEWKzJJtE8',
+                    language: 'en',
+                }}
+                styles={{
+                    container: {flex: 0, position: 'absolute', width: '100%', zIndex: 1},
+                    listView: {backgroundColor: 'white'}
+                }}
+            />
             <MapView
                 ref={component => this._map = component}
                 provider={PROVIDER_GOOGLE} // remove if not using Google Mapsa
@@ -81,7 +100,7 @@ function MapScreen({ navigation }) {
                 >
                 </Circle>
                 {data.map((item, index) => (
-                    <Marker key={index} title={item.name} coordinate={{latitude: item.latitude, longitude: item.longtitude}} />
+                    <Marker key={index} title={item.name} coordinate={{ latitude: item.latitude, longitude: item.longtitude }} />
                 ))}
             </MapView>
             <TouchableOpacity
@@ -109,15 +128,6 @@ function MapScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        ...StyleSheet.absoluteFillObject,
-        /**Default zoom level of rendered map */
-        position: 'absolute',
-        height: 780,
-        width: 410,
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-    },
     map: {
         ...StyleSheet.absoluteFillObject,
     },
@@ -131,7 +141,8 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         shadowColor: 'black',
         shadowOpacity: 4,
-        bottom: 80,
+        bottom: 40,
+        left: 80
     },
     locationBtn: {
         position: 'absolute',
@@ -143,7 +154,7 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         shadowColor: 'black',
         shadowOpacity: 4,
-        bottom: 100,
+        bottom: 40,
         right: 20,
     },
     text1: {
