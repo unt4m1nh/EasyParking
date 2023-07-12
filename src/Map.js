@@ -18,6 +18,7 @@ import data from './data/data';
 function MapScreen({ navigation }) {
     const [currentLongtitude, setCurrentLongtitude] = useState(0);
     const [currentLatitude, setCurrentLatitude] = useState(0);
+    const [viewPlace, setViewPlace] = useState(false);
 
     useEffect(() => {
         const requestLocationPermission = async () => {
@@ -56,6 +57,10 @@ function MapScreen({ navigation }) {
 
     getLocation();
 
+    const renderPlacesInfo = () => {
+
+    }
+
     return (
         <View style={{ marginTop: 0, flex: 1 }}>
             <GooglePlacesAutocomplete
@@ -63,13 +68,20 @@ function MapScreen({ navigation }) {
                 autoFocus={false}
                 returnKeyType={'default'}
                 fetchDetails={true}
+                GooglePlacesSearchQuery={{
+                    rankby: "distance"
+                }}
                 onPress={(data, details = null) => {
                     // 'details' is provided when fetchDetails = true
                     console.log(data, details);
                 }}
                 query={{
                     key: 'AIzaSyA5MYKgm_x0o_M0RLltOH1KtlEWKzJJtE8',
-                    language: 'en',
+                    language: 'vi',
+                    components: 'country: vi',
+                    type: 'establishment',
+                    radius: 40000,
+                    location: `${currentLatitude}, ${currentLongtitude}`
                 }}
                 styles={{
                     container: {flex: 0, position: 'absolute', width: '100%', zIndex: 1},
@@ -89,7 +101,7 @@ function MapScreen({ navigation }) {
             >
                 <Marker
                     title='Bạn đang ở đây'
-                    pinColor='red'
+                    pinColor='white'
                     coordinate={{ latitude: currentLatitude, longitude: currentLongtitude }}
                 ></Marker>
                 <Circle
@@ -123,6 +135,11 @@ function MapScreen({ navigation }) {
                 }}>
                 <Text style={styles.text1}>+</Text>
             </TouchableOpacity>
+            {
+                viewPlace &&
+                <View>
+                </View>
+            }
         </View>
     )
 }
