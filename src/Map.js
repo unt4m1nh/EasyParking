@@ -9,16 +9,22 @@ import {
     ScrollView,
 } from 'react-native'
 
-import MapView, { Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { LatLng, Callout, Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import Geolocation from 'react-native-geolocation-service';
+import MapViewDirections from 'react-native-maps-directions';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import data from './data/data';
+
+import CardInfo from './CardInfo';
 
 function MapScreen({ navigation }) {
     const [currentLongtitude, setCurrentLongtitude] = useState(0);
     const [currentLatitude, setCurrentLatitude] = useState(0);
-    const [viewPlace, setViewPlace] = useState(false);
+    const [desLat, setDesLat] = useState(0);
+    const [desLng, setDesLng] = useState(0);
+    const [showDirection, setShowDirection] = useState(false);
+    const [show, setShow] = useState(false);
 
     useEffect(() => {
         const requestLocationPermission = async () => {
@@ -44,8 +50,7 @@ function MapScreen({ navigation }) {
                 console.log(position);
                 setCurrentLatitude(position.coords.latitude);
                 setCurrentLongtitude(position.coords.longitude);
-                console.log(currentLatitude);
-                console.log(currentLongtitude);
+                setShowDirection(false);
             },
             (error) => {
                 // See error code charts below.
@@ -56,10 +61,6 @@ function MapScreen({ navigation }) {
     }
 
     getLocation();
-
-    const renderPlacesInfo = () => {
-
-    }
 
     return (
         <View style={{ marginTop: 0, flex: 1 }}>
@@ -84,8 +85,8 @@ function MapScreen({ navigation }) {
                     location: `${currentLatitude}, ${currentLongtitude}`
                 }}
                 styles={{
-                    container: {flex: 0, position: 'absolute', width: '100%', zIndex: 1},
-                    listView: {backgroundColor: 'white'}
+                    container: { flex: 0, position: 'absolute', width: '100%', zIndex: 1 },
+                    listView: { backgroundColor: 'white' }
                 }}
             />
             <MapView
@@ -112,16 +113,52 @@ function MapScreen({ navigation }) {
                 >
                 </Circle>
                 {data.map((item, index) => (
-                    <Marker key={index} title={item.name} coordinate={{ latitude: item.latitude, longitude: item.longtitude }} />
+                    <Marker
+                        key={index}
+                        title={item.name}
+                        coordinate={{ latitude: item.latitude, longitude: item.longtitude }}
+                        onPress={() => {
+                            setDesLat(item.latitude);
+                            setDesLng(item.longtitude);
+                            setShow(true);
+                        }}
+                    >
+                        <Callout>
+                            <View>
+                                <Text>Name: {item.name}</Text>
+                                <Text>{item.slotLeft} / {item.maxSlot} </Text>
+                            </View>
+                        </Callout>
+                    </Marker>
                 ))}
+                {showDirection && (
+                    <MapViewDirections
+                        origin={{
+                            latitude: currentLatitude,
+                            longitude: currentLongtitude,
+                        }}
+                        destination={{
+                            latitude: desLat,
+                            longitude: desLng,
+                        }}
+                        apikey={'AIzaSyCpIjvhZmuyzUkn_iJ-9eTLhPBrjyQFsMM'}
+                        strokeWidth={3}
+                        strokeColor="hotpink"
+                    //onReady={traceRouteOnReady}
+                    />
+                )
+                }
             </MapView>
-            <TouchableOpacity
-                style={styles.btn}
-                onPress={() => {
-                    navigation.navigate('ParkingListView')
-                }}>
-                <Text style={styles.text1}>See List of Parking</Text>
-            </TouchableOpacity>
+            {show && (
+                <TouchableOpacity
+                    style={styles.btn}
+                    onPress={() => {
+                        setShowDirection(true);
+                    }}>
+                    <Text style={styles.text1}>Trace Route</Text>
+                </TouchableOpacity>
+            )
+            }
             <TouchableOpacity
                 style={styles.locationBtn}
                 onPress={() => {
@@ -135,16 +172,16 @@ function MapScreen({ navigation }) {
                 }}>
                 <Text style={styles.text1}>+</Text>
             </TouchableOpacity>
-            {
-                viewPlace &&
-                <View>
-                </View>
-            }
         </View>
     )
 }
 
 const styles = StyleSheet.create({
+    infoContainer: {
+        position: 'absolute',
+        width: '100%',
+        height: 200,
+    },
     map: {
         ...StyleSheet.absoluteFillObject,
     },
