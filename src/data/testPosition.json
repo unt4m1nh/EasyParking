@@ -1,0 +1,37 @@
+[
+    {
+      "id": 1,
+      "name": "Vinhomes Royal City",
+      "address": "72 Nguyễn Trãi, Thượng Đình, Thanh Xuân, Hà Nội",
+      "longitude": 105.81622312517251,
+      "latitude": 21.001677603066064
+    },
+    {
+      "id": 2,
+      "name": "Indochina Plaza Hanoi",
+      "address": "241 Xuân Thủy, Dịch Vọng Hậu, Cầu Giẩy, Hà Nội",
+      "longitude":  105.78279335216159, 
+      "latitude": 21.035982012278232
+    },
+    {
+      "id": 3,
+      "name": "Hồ Hoàn Kiếm",
+      "address": "Hàng Trống, Hoàn Kiếm, Hà Nội",
+      "longitude": 105.8519248140914,
+      "latitude": 21.028924944948137
+    },
+    {
+      "id": 4,
+      "name": "Vincom Center Phạm Ngọc Thạch",
+      "address": "02 Phạm Ngọc Thạch, Kim Liên, Đống Đa, Hà Nội",
+      "longitude": 105.83199891167854,
+      "latitude": 21.006591538713227
+    },
+    {
+      "id": 5,
+      "name": "Bệnh viện Bạch Mai",
+      "address": "Phương Mai, Đống Đa, Hà Nội",
+      "longitude": 105.83919385216082,
+      "latitude": 21.00297054946842
+    }
+  ]

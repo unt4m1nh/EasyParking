@@ -1,0 +1,68 @@
+[
+  {
+    "_id": "64b511d8df2296f943328e3c",
+    "nameParking": "G2_UET_VNU",
+    "address": "144 Xuân Thủy, Dịch Vọng Hậu, Cầu Giấy, Hà Nội",
+    "longitude": 105.783052,
+    "latitude": 21.038082,
+    "price": 3000,
+    "maxSlot": 100,
+    "Value_empty_slot": 6,
+    "emptySlot": [
+      0,
+      86,
+      0,
+      58,
+      50,
+      29,
+      99,
+      55,
+      78,
+      29
+    ]
+  },
+  {
+    "_id": "64b511d8df2296f943328e3d",
+    "nameParking": "FPT software",
+    "address": "17 Duy Tân, Cầu Giấy, Dịch Vọng Hậu, Hà Nội",
+    "longitude": 105.783041,
+    "latitude": 21.03073,
+    "price": 10000,
+    "maxSlot": 100,
+    "Value_empty_slot": "",
+    "emptySlot": ""
+  },
+  {
+    "_id": "64b511d8df2296f943328e3e",
+    "nameParking": "HNUE",
+    "address": "146 Xuân Thủy, Dịch Vọng Hậu, Cầu Giấy, Hà Nội",
+    "longitude": 105.783764,
+    "latitude": 21.03731,
+    "price": 3000,
+    "maxSlot": 500,
+    "Value_empty_slot": "",
+    "emptySlot": ""
+  },
+  {
+    "_id": "64b511d8df2296f943328e3f",
+    "nameParking": "AJC",
+    "address": "36 Xuân Thủy, Dịch Vọng Hậu, Cầu Giấy, Hà Nội",
+    "longitude": 105.788598,
+    "latitude": 21.037081,
+    "price": 3000,
+    "maxSlot": 200,
+    "Value_empty_slot": "",
+    "emptySlot": ""
+  },
+  {
+    "_id": "64b511d8df2296f943328e40",
+    "nameParking": "TMU",
+    "address": "72 Hồ Tùng Mậu, Mai Dịch, Cầu Giấy, Hà Nội",
+    "longitude": 105.775661,
+    "latitude": 21.036411,
+    "price": 3000,
+    "maxSlot": 300,
+    "Value_empty_slot": "",
+    "emptySlot": ""
+  }
+]

@@ -5,7 +5,7 @@ async function main(){
      * Connection URI. Update <username>, <password>, and <your-cluster-url> to reflect your cluster.
      * See https://docs.mongodb.com/ecosystem/drivers/node/ for more details
      */
-    const uri = "mongodb+srv://leanht1k59:<Az123456>@cluster0.fjsls8s.mongodb.net/";
+    const uri = "mongodb+srv://sparking:Az123456@dbs.bgpecdq.mongodb.net/?retryWrites=true&w=majority";
  
 
     const client = new MongoClient(uri);
