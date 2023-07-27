@@ -26,6 +26,7 @@ import {
 } from 'react-native/Libraries/NewAppScreen';
 
 import AppNavigator from './src/AppNavigation';
+import MapScreen from './src/Map';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -62,8 +63,8 @@ function App(): JSX.Element {
 
 
   return (
-
-    <AppNavigator />
+      <AppNavigator/>
+    //<MapScreen/>
   );
 }
 

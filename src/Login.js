@@ -6,11 +6,19 @@ import {
     TextInput
 } from 'react-native'
 
+import { AuthContext } from '../component/context';
 
 
-function Login({ navigation }) {
+
+function Login() {
     const [userName, onChangeUserName] = React.useState("Tài khoản");
     const [password, onChangePassword] = React.useState("Mật khẩu");
+
+    //const { logIn } = React.useContext(AuthContext)
+    //const {loginState, setLoginState} = React.useContext(AuthContext);
+    const {setCurrentUser} = React.useContext(AuthContext);
+
+    const { signIn } = React.useContext(AuthContext);
 
     return (
         <View style={styles.background}>
@@ -34,7 +42,7 @@ function Login({ navigation }) {
             <Button
                 title="Đăng nhập"
                 onPress={() =>
-                    navigation.navigate('MapView')
+                    {signIn()}
                 }
             />
         </View>
