@@ -3,28 +3,30 @@ import {
     Text, View,
     StyleSheet,
     Button,
-    TextInput
+    TextInput,
+    Touchable,
+    TouchableOpacity
 } from 'react-native'
 
 import { AuthContext } from '../component/context';
 
 
 
-function Login() {
-    const [userName, onChangeUserName] = React.useState("Tài khoản");
-    const [password, onChangePassword] = React.useState("Mật khẩu");
+function Login({navigation}) {
+    const [userName, onChangeUserName] = React.useState("username123");
+    const [password, onChangePassword] = React.useState("Abc1245");
 
     //const { logIn } = React.useContext(AuthContext)
     //const {loginState, setLoginState} = React.useContext(AuthContext);
-    const {setCurrentUser} = React.useContext(AuthContext);
+    const { setCurrentUser } = React.useContext(AuthContext);
 
     const { signIn } = React.useContext(AuthContext);
 
     return (
         <View style={styles.background}>
-            <Text style={styles.text}>Login</Text>
+            <Text style={styles.header}>Đăng nhập</Text>
             <View style={styles.inputContainer}>
-                <Text>Tài khoản</Text>
+                <Text style={styles.text}>Tài khoản</Text>
                 <TextInput
                     style={styles.input}
                     onChangeText={onChangeUserName}
@@ -32,19 +34,27 @@ function Login() {
                 />
             </View>
             <View style={styles.inputContainer}>
-                <Text>Mật khẩu</Text>
+                <Text style={styles.text}>Mật khẩu</Text>
                 <TextInput
                     style={styles.input}
                     onChangeText={onChangePassword}
                     value={password}
                 />
             </View>
-            <Button
-                title="Đăng nhập"
-                onPress={() =>
-                    {signIn()}
-                }
-            />
+            <View style={{ width: "90%", }}>
+                <TouchableOpacity style={{ alignItems: "flex-end", marginTop: 10, }}>
+                    <Text style={{ color: "#2957C2", fontWeight: "bold" }}>Quên mật khẩu</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ alignItems: "flex-end", marginTop: 10, }}>
+                    <Text style={{ color: "#2957C2", fontWeight: "bold" }}>Tạo tài khoản mới</Text>
+                </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.signInBtn}  onPress={() => {signIn()}}>
+                <Text
+                    style={{ color: "#fff", textTransform: "uppercase" }}
+                >
+                    Đăng nhập</Text>
+            </TouchableOpacity>
         </View>
     )
 }
@@ -59,21 +69,38 @@ const styles = StyleSheet.create({
         alignItems: "center",
 
     },
+    header: {
+        marginTop: 33,
+        color: "#2957C2",
+        fontSize: 22,
+        fontWeight: "bold"
+    },
     inputContainer: {
         width: "100%",
-        height: "auto"
+        height: "auto",
+        padding: 18,
     },
     text: {
-        fontSize: 30,
-        color: 'black'
+        fontSize: 14,
+        color: 'black',
     },
     input: {
-        width: "90%",
+        width: "100%",
         height: 40,
-        margin: 20,
         borderWidth: 1,
+        borderColor: "#979797",
         padding: 10,
+        marginTop: 10,
     },
+    signInBtn: {
+        position: 'absolute',
+        backgroundColor: "#2957C2",
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: "90%",
+        height: 44,
+        bottom: 20,
+    }
 });
 
 
