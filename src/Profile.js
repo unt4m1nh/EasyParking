@@ -3,14 +3,24 @@ import {
     Text, View,
     StyleSheet,
     Button,
-    TextInput
+    TextInput,
+    Image
 } from 'react-native'
 
 function Profile({navigation}) {
 
     return (
         <View style={styles.background}>
-            <Text style={styles.text}>Profile Tab</Text>
+            <View style={styles.infoContainer}>
+                <Image
+                    style={{marginLeft: 40}}
+                    source={require('./img/user.png')} 
+                 />
+                <View>
+                    <Text style={{color: "#FFF"}}>Xin chào !</Text>
+                    <Text style={{color: "#FFF", fontSize: 20}}>Hoàng Gia Minh</Text>
+                </View>
+            </View>
         </View>
     )
 }
@@ -19,8 +29,15 @@ const styles = StyleSheet.create({
    background: {
         width: "100%",
         height: "100%",
-        justifyContent: "center",
-        alignItems: "center"
+   },
+   infoContainer: {
+        width: "100%",
+        height: 128,
+        backgroundColor: "#2957C2",
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 20
    }
 });
 

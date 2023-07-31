@@ -51,7 +51,7 @@ function Login({navigation}) {
             </View>
             <TouchableOpacity style={styles.signInBtn}  onPress={() => {signIn()}}>
                 <Text
-                    style={{ color: "#fff", textTransform: "uppercase" }}
+                    style={{ color: "#fff", textTransform: "uppercase", fontWeight: "bold" }}
                 >
                     Đăng nhập</Text>
             </TouchableOpacity>

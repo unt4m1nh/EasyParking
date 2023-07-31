@@ -9,7 +9,6 @@ import ParkingListView from './ParkingListView';
 import RootStackScreen from './RootStackScreen';
 
 import { AuthContext } from '../component/context';
-import BottomNavigation from './BottomNavigation';
 
 import MapScreen from './Map';
 import QrScreen from './Qr';
@@ -86,13 +85,13 @@ function AppNavigator() {
 
                   if (rn === mapName) {
                     iconName = focused ? "map" : "map"
-                    colorName = focused ? "#14dbf5" : "#b7bbc3"
+                    colorName = focused ? "#2957C2" : "#b7bbc3"
                   } else if (rn === qrName) {
                     iconName = focused ? "qrcode" : "qrcode"
-                    colorName = focused ? "#14dbf5" : "#b7bbc3"
+                    colorName = focused ? "#2957C2" : "#b7bbc3"
                   } else if (rn === profileName) {
                     iconName = focused ? "user" : "user"
-                    colorName = focused ? "#14dbf5" : "#b7bbc3"
+                    colorName = focused ? "#2957C2" : "#b7bbc3"
                   }
 
                   return <Icon name={iconName} size={25} color={colorName} />
