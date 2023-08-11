@@ -4,6 +4,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/FontAwesome'
 
+import Realm from 'realm';
+import {createRealmContext} from '@realm/react';
+
 import Login from './Login';
 import ParkingListView from './ParkingListView';
 import RootStackScreen from './RootStackScreen';
@@ -18,7 +21,7 @@ const BottomNavigator = createBottomTabNavigator();
 
 const mapName = 'Bản đồ';
 const qrName = 'QR Code';
-const profileName = 'Tài khoản';    
+const profileName = 'Tài khoản';   
 
 function AppNavigator() {
   const [userToken, setUserToken] = React.useState(null);
@@ -67,6 +70,11 @@ function AppNavigator() {
     signIn: () => {
       setUserToken('abcxyz');
       console.log('signIN');
+      console.log(userToken);
+    },
+    signOut: () => {
+      setUserToken(null);
+      console.log('Đăng xuất');
       console.log(userToken);
     }
   }));
