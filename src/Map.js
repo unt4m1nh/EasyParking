@@ -1,6 +1,8 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import {
     Text,
+    TextInput,
+    FlatList,
     View,
     StyleSheet,
     TouchableOpacity,
@@ -12,50 +14,12 @@ import {
 import MapView, { LatLng, Callout, Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import SearchableDropdown from 'react-native-searchable-dropdown';
 
+import Icon from 'react-native-vector-icons/FontAwesome'
+
 import Geolocation from 'react-native-geolocation-service';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import MapViewDirections from 'react-native-maps-directions';
 import data from '../backend/data.json';
-import listPos from './data/testPosition.json'
-
-import CardInfo from './CardInfo';
-
-var list = [
-    {
-        "id": 1,
-        "name": "Vinhomes Royal City",
-        "address": "72 Nguyễn Trãi, Thượng Đình, Thanh Xuân, Hà Nội",
-        "longitude": 105.81622312517251,
-        "latitude": 21.001677603066064
-    },
-    {
-        "id": 2,
-        "name": "Indochina Plaza Hanoi",
-        "address": "241 Xuân Thủy, Dịch Vọng Hậu, Cầu Giẩy, Hà Nội",
-        "longitude": 105.78279335216159,
-        "latitude": 21.035982012278232
-    },
-    {
-        "id": 3,
-        "name": "Hồ Hoàn Kiếm",
-        "address": "Hàng Trống, Hoàn Kiếm, Hà Nội",
-        "longitude": 105.8519248140914,
-        "latitude": 21.028924944948137
-    },
-    {
-        "id": 4,
-        "name": "Vincom Center Phạm Ngọc Thạch",
-        "address": "02 Phạm Ngọc Thạch, Kim Liên, Đống Đa, Hà Nội",
-        "longitude": 105.83199891167854,
-        "latitude": 21.006591538713227
-    },
-    {
-        "id": 5,
-        "name": "Bệnh viện Bạch Mai",
-        "address": "Phương Mai, Đống Đa, Hà Nội",
-        "longitude": 105.83919385216082,
-        "latitude": 21.00297054946842
-    }
-]
 
 function MapScreen({ navigation }) {
     const [currentLongtitude, setCurrentLongtitude] = useState(0);
@@ -67,6 +31,77 @@ function MapScreen({ navigation }) {
     const [selectedItem, setSelectedItem] = useState(null);
     const [posLat, setPosLat] = useState(null);
     const [posLng, setPosLng] = useState(null);
+    const [pData, setPdata] = React.useState({
+        nameParking: '',
+        status: '',
+        price: '',
+        slotLeft: '',
+    })
+    const [inputValue, setInputValue] = useState('');
+    const [predictions, setPredictions] = useState([]);
+    const [showPredictions, setShowPredictions] = useState(false);
+    const [showMarker, setShowMarker] = useState(false);
+
+
+    const handleInputChange = async (text) => {
+        setInputValue(text);
+        var requestOptions = {
+            method: 'GET',
+        };
+        const apiKey = 'ae0534df26a0484f9977c8dbadfc05e5';
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${text}&format=json&apiKey=${apiKey}`;
+        console.log(url);
+        fetch(url, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                var arr = [];
+                for (var i = 0; i < 5; i++) {
+                    let id = i + 1;
+                    const prediction = {
+                        id: id,
+                        name: result.results[i].name,
+                        lat: result.results[i].lat,
+                        lon: result.results[i].lon,
+                    };
+                    arr.push(prediction);
+                }
+                setPredictions(arr);
+            })
+            .catch(error => console.log('error', error));
+    };
+
+    console.log(predictions);
+    /*     const fetchPlacesAutocomplete = async (inputText) => {
+            const apiKey = 'ae0534df26a0484f9977c8dbadfc05e5Y'; // Replace with your actual API key
+            const endpoint = `https://api.geoapify.com/v1/places/autocomplete?text=${inputText}&apiKey=${apiKey}`;
+    
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                return data.features;
+            } catch (error) {
+                console.error('Error fetching autocomplete results:', error);
+                return [];
+            }
+        }; */
+
+    /*   const handleInputChange = async (text) => {
+          setInputText(text);
+          const results = await fetchPlacesAutocomplete(text);
+          setAutocompleteResults(results);
+      }; */
+
+    const callFromBackEnd = () => {
+        var requestOptions = {
+            method: 'GET',
+            redirect: 'follow'
+        };
+
+        fetch("http://10.0.3.2:3000/parking", requestOptions)
+            .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.log('error', error));
+    }
 
     useEffect(() => {
         const requestLocationPermission = async () => {
@@ -102,6 +137,9 @@ function MapScreen({ navigation }) {
         )
     }
 
+    //setInterval(callFromBackEnd, 10000);
+
+
     getLocation();
 
     return (
@@ -130,6 +168,15 @@ function MapScreen({ navigation }) {
                     strokeWidth={2}
                 >
                 </Circle>
+                {
+                    showMarker && (
+                        <Marker 
+                            coordinate={{latitude: desLat, longitude: desLng}}
+                            image={require('./img/location.png')}
+                        >
+                        </Marker>
+                    )
+                }
                 {data.map((item, index) => (
                     <Marker
                         key={index}
@@ -140,13 +187,16 @@ function MapScreen({ navigation }) {
                             setDesLat(item.latitude);
                             setDesLng(item.longitude);
                             setShow(true);
+                            setPdata({
+                                ...pData,
+                                nameParking: item.nameParking,
+                                price: item.price,
+                                slotLeft: item.emptySlot
+                            });
                         }}
                     >
                         <Callout>
-                            <View>
-                                <Text>Name: {item.nameParking}</Text>
-                                <Text>{item.Value_empty_slot}</Text>
-                            </View>
+                            <Text>{item.nameParking}</Text>
                         </Callout>
                     </Marker>
                 ))}
@@ -168,82 +218,71 @@ function MapScreen({ navigation }) {
                 )
                 }
             </MapView>
+
             <View style={styles.dropdown}>
-                <SearchableDropdown
-                    onItemSelect={(item) => {
-                        //setSelectedItem(item)
-
-                        setPosLat(item.latitude);
-                        setPosLng(item.longitude);
-                        console.log(posLat);
-                        console.log(posLng);
-                        _map.animateToRegion({
-                            latitude: posLat,
-                            longitude: posLng,
-                            latitudeDelta: 0.01,
-                            longitudeDelta: 0.01,
-                        }, 1000);
-
-                    }}
-                    containerStyle={{
-                        position: 'absolute',
-                        marginTop: 0,
-                        alignItems: 'center',
-                        width: '100%',
-                        padding: 5,
-                        backgroundColor: '#fff',
-                    }}
-                    onRemoveItem={(item, index) => {
-
-                    }}
-                    itemStyle={{
-                        //position: 'absolute',
-                        with: '100%',
-                        padding: 10,
-                        marginTop: 2,
-                        backgroundColor: '#ddd',
-                        borderColor: '#bbb',
-                        borderWidth: 1,
-                        borderRadius: 5,
-                    }}
-                    itemTextStyle={{ color: '#222' }}
-                    itemsContainerStyle={{
-                        top: 50,
-                        width: "100%",
-                        maxHeight: 700
-                    }}
-                    items={list}
-                    resetValue={false}
-                    textInputProps={
-                        {
-                            placeholder: "Nhập vị trí bạn muốn đến ",
-                            underlineColorAndroid: "transparent",
-                            style: {
-                                position: 'absolute',
-                                width: "100%",
-                                padding: 12,
-                                borderWidth: 1,
-                                borderColor: '#ccc',
-                                borderRadius: 5,
-                            },
-                            //onTextChange: text => alert(text)
-                        }
-                    }
-                    listProps={
-                        {
-                            nestedScrollEnabled: true,
-                        }
-                    }
+                <TextInput
+                    placeholder="Enter location"
+                    value={inputValue}
+                    onChangeText={handleInputChange}
+                    onPressIn={() => {setShowPredictions(true)}}
+                    style={{padding: 10, fontSize: 16}}
                 />
+                {
+                    showPredictions && (
+                        <ScrollView>
+                            {predictions.map((item, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={styles.predictions}
+                                    onPress={() => {
+                                        setShowPredictions(false);
+                                        setShowMarker(true);
+                                        setPosLat(item.lat);
+                                        setPosLng(item.lon);
+                                        console.log(posLat);
+                                        console.log(posLng);
+                                        _map.animateToRegion({
+                                            latitude: posLat,
+                                            longitude: posLng,
+                                            latitudeDelta: 0.01,
+                                            longitudeDelta: 0.01,
+                                        }, 1000);
+                
+                                    }}
+                                >
+                                     <Text key={index}>{item.name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                            <TouchableOpacity onPress={() => {setShowPredictions(false)}}>
+                                <Text>Đóng</Text>
+                            </TouchableOpacity>
+                        </ScrollView>
+                    )
+                }
             </View>
+
             {show && (
-                <TouchableOpacity
-                    style={styles.btn}
-                    onPress={() => {
-                        setShowDirection(true);
-                    }}>
-                    <Text style={styles.text1}>Trace Route</Text>
-                </TouchableOpacity>
+                <View style={styles.marker_callout}>
+                    <View style={{ display: 'flex', flexDirection: 'row' }}>
+                        <Text style={{ color: "#000", fontSize: 25 }}>{pData.nameParking}</Text>
+                        <TouchableOpacity
+                            style={{ position: 'absolute', right: 10 }}
+                            onPress={() => {
+                                setShow(false);
+                            }}
+                        >
+                            <Icon name="close" size={25} color="#2957C2" />
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={{ color: "#000", fontSize: 13 }} >Đang hoạt động</Text>
+                    <Text style={{ color: "#000", fontSize: 15, marginTop: 10 }}>{pData.price}VNĐ / 1 giờ</Text>
+                    <Text style={{ color: "#000", fontSize: 15 }}>{pData.slotLeft} chỗ trống</Text>
+                    <TouchableOpacity 
+                        style={styles.bookingBtn}
+                    >
+                        <Text style={{ color: "#fff", fontSize: 20 }}>Đặt chỗ ngay</Text>
+                    </TouchableOpacity>
+                </View>
             )
             }
             <TouchableOpacity
@@ -257,7 +296,7 @@ function MapScreen({ navigation }) {
                     }, 1000);
                     console.log('Tapped')
                 }}>
-                <Text style={styles.text1}>+</Text>
+                <Icon name="location-arrow" size={20} color="white" />
             </TouchableOpacity>
         </View>
     )
@@ -272,7 +311,7 @@ const styles = StyleSheet.create({
     dropdown: {
         position: 'absolute',
         width: '100%',
-        height: 55,
+        height: 'auto',
         top: 0,
         backgroundColor: '#fff'
     },
@@ -296,19 +335,45 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: 40,
         height: 40,
-        backgroundColor: '#87ceeb',
+        backgroundColor: '#2957C2',
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 4,
+        borderRadius: 100,
         shadowColor: 'black',
         shadowOpacity: 4,
-        bottom: 40,
+        bottom: 50,
         right: 20,
+    },
+    bookingBtn: {
+        width: 200,
+        height: 50,
+        backgroundColor: '#2957C2',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 10
     },
     text1: {
         color: 'white',
         fontSize: 20,
     },
+    marker_callout: {
+        backgroundColor: '#fff',
+        position: 'absolute',
+        width: '100%',
+        height: 226,
+        bottom: 0,
+        left: 0,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: 30
+    },
+    predictions: {
+        height: 55,
+        padding: 10,
+        color: '#000'
+    }
 });
 
 export default MapScreen;
