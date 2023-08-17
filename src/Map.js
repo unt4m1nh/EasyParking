@@ -11,13 +11,12 @@ import {
     ScrollView,
 } from 'react-native'
 
-import MapView, { LatLng, Callout, Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Polyline, Callout, Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import SearchableDropdown from 'react-native-searchable-dropdown';
 
 import Icon from 'react-native-vector-icons/FontAwesome'
 
 import Geolocation from 'react-native-geolocation-service';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import MapViewDirections from 'react-native-maps-directions';
 import data from '../backend/data.json';
 
@@ -28,7 +27,7 @@ function MapScreen({ navigation }) {
     const [desLng, setDesLng] = useState(0);
     const [showDirection, setShowDirection] = useState(false);
     const [show, setShow] = useState(false);
-    const [selectedItem, setSelectedItem] = useState(null);
+    const [routes, setRoutes] = useState([]);
     const [posLat, setPosLat] = useState(null);
     const [posLng, setPosLng] = useState(null);
     const [pData, setPdata] = React.useState({
@@ -41,7 +40,7 @@ function MapScreen({ navigation }) {
     const [predictions, setPredictions] = useState([]);
     const [showPredictions, setShowPredictions] = useState(false);
     const [showMarker, setShowMarker] = useState(false);
-
+    const [chosen, setChosen] = useState(false);
 
     const handleInputChange = async (text) => {
         setInputValue(text);
@@ -70,26 +69,26 @@ function MapScreen({ navigation }) {
             .catch(error => console.log('error', error));
     };
 
-    console.log(predictions);
-    /*     const fetchPlacesAutocomplete = async (inputText) => {
-            const apiKey = 'ae0534df26a0484f9977c8dbadfc05e5Y'; // Replace with your actual API key
-            const endpoint = `https://api.geoapify.com/v1/places/autocomplete?text=${inputText}&apiKey=${apiKey}`;
-    
-            try {
-                const response = await fetch(endpoint);
-                const data = await response.json();
-                return data.features;
-            } catch (error) {
-                console.error('Error fetching autocomplete results:', error);
-                return [];
-            }
-        }; */
-
-    /*   const handleInputChange = async (text) => {
-          setInputText(text);
-          const results = await fetchPlacesAutocomplete(text);
-          setAutocompleteResults(results);
-      }; */
+    const getRouteFromApi = () => {
+        var requestOptions = {
+            method: 'GET',
+        };
+        const apiKey = 'ae0534df26a0484f9977c8dbadfc05e5';
+        const url = `https://api.geoapify.com/v1/routing?waypoints=21.02927009995365,105.8560117698695|${desLat},${desLng}&mode=drive&apiKey=ae0534df26a0484f9977c8dbadfc05e5`;
+        fetch(url, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                //setRoutes();
+                const arrayOfCoordinates = result.features[0].geometry.coordinates[0].map(arr => {
+                    return {
+                        latitude: arr[1],
+                        longitude: arr[0]
+                    }
+                })
+                setRoutes(arrayOfCoordinates);
+            })
+            .catch(error => console.log('error', error));
+    }
 
     const callFromBackEnd = () => {
         var requestOptions = {
@@ -137,7 +136,17 @@ function MapScreen({ navigation }) {
         )
     }
 
-    //setInterval(callFromBackEnd, 10000);
+    if (chosen) {
+        console.log(posLat);
+        console.log(posLng);
+        _map.animateToRegion({
+            latitude: posLat,
+            longitude: posLng,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+        }, 1000);
+        setChosen(false);
+    }
 
 
     getLocation();
@@ -170,8 +179,8 @@ function MapScreen({ navigation }) {
                 </Circle>
                 {
                     showMarker && (
-                        <Marker 
-                            coordinate={{latitude: desLat, longitude: desLng}}
+                        <Marker
+                            coordinate={{ latitude: posLat, longitude: posLng }}
                             image={require('./img/location.png')}
                         >
                         </Marker>
@@ -187,6 +196,8 @@ function MapScreen({ navigation }) {
                             setDesLat(item.latitude);
                             setDesLng(item.longitude);
                             setShow(true);
+                            console.log(posLat);
+                            console.log(posLng);
                             setPdata({
                                 ...pData,
                                 nameParking: item.nameParking,
@@ -201,19 +212,10 @@ function MapScreen({ navigation }) {
                     </Marker>
                 ))}
                 {showDirection && (
-                    <MapViewDirections
-                        origin={{
-                            latitude: currentLatitude,
-                            longitude: currentLongtitude,
-                        }}
-                        destination={{
-                            latitude: desLat,
-                            longitude: desLng,
-                        }}
-                        apikey={'AIzaSyCpIjvhZmuyzUkn_iJ-9eTLhPBrjyQFsMM'}
-                        strokeWidth={3}
-                        strokeColor="hotpink"
-                    //onReady={traceRouteOnReady}
+                    <Polyline
+                        coordinates={routes}
+                        strokeColor='#2957C2'
+                        strokeWidth={5}
                     />
                 )
                 }
@@ -221,11 +223,12 @@ function MapScreen({ navigation }) {
 
             <View style={styles.dropdown}>
                 <TextInput
-                    placeholder="Enter location"
+                    placeholder="Nhập vị trí bạn muốn đến"
+                    keyboardType="default"
                     value={inputValue}
                     onChangeText={handleInputChange}
-                    onPressIn={() => {setShowPredictions(true)}}
-                    style={{padding: 10, fontSize: 16}}
+                    onPressIn={() => { setShowPredictions(true) }}
+                    style={{ padding: 10, fontSize: 16 }}
                 />
                 {
                     showPredictions && (
@@ -237,24 +240,20 @@ function MapScreen({ navigation }) {
                                     onPress={() => {
                                         setShowPredictions(false);
                                         setShowMarker(true);
+                                        console.log(item);
                                         setPosLat(item.lat);
                                         setPosLng(item.lon);
-                                        console.log(posLat);
-                                        console.log(posLng);
-                                        _map.animateToRegion({
-                                            latitude: posLat,
-                                            longitude: posLng,
-                                            latitudeDelta: 0.01,
-                                            longitudeDelta: 0.01,
-                                        }, 1000);
-                
+                                        setChosen(true);
                                     }}
                                 >
-                                     <Text key={index}>{item.name}</Text>
+                                    <Text key={index}>{item.name}</Text>
                                 </TouchableOpacity>
                             ))}
-                            <TouchableOpacity onPress={() => {setShowPredictions(false)}}>
-                                <Text>Đóng</Text>
+                            <TouchableOpacity
+                                onPress={() => { setShowPredictions(false) }}
+                                style={{ padding: 10, alignItems: 'flex-end' }}
+                            >
+                                <Text style={{ color: '#2957C2', fontWeight: 'bold' }}>Đóng</Text>
                             </TouchableOpacity>
                         </ScrollView>
                     )
@@ -277,8 +276,12 @@ function MapScreen({ navigation }) {
                     <Text style={{ color: "#000", fontSize: 13 }} >Đang hoạt động</Text>
                     <Text style={{ color: "#000", fontSize: 15, marginTop: 10 }}>{pData.price}VNĐ / 1 giờ</Text>
                     <Text style={{ color: "#000", fontSize: 15 }}>{pData.slotLeft} chỗ trống</Text>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.bookingBtn}
+                        onPress={() => {
+                            setShowDirection(true);
+                            getRouteFromApi();
+                        }}
                     >
                         <Text style={{ color: "#fff", fontSize: 20 }}>Đặt chỗ ngay</Text>
                     </TouchableOpacity>
@@ -363,8 +366,6 @@ const styles = StyleSheet.create({
         height: 226,
         bottom: 0,
         left: 0,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
         display: 'flex',
         flexDirection: 'column',
         padding: 30
