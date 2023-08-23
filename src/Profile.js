@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Text, View,
     StyleSheet,
@@ -9,6 +9,8 @@ import {
 } from 'react-native'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import Icon from 'react-native-vector-icons/FontAwesome'
 
 import { AuthContext } from '../component/context';
 
@@ -26,8 +28,9 @@ function Profile({ navigation }) {
         }
     };
 
-    let username = "";
     const [uname, setUname] = useState(null);
+    const [accountBallance, setAccountBallance] = useState(null);
+    const [payment, setPayment] = useState(null);
     const [token, setToken] = useState(null);
     retrieveToken().then((storedToken) => {
         if (storedToken) {
@@ -49,16 +52,14 @@ function Profile({ navigation }) {
         };
 
         fetch("http://10.0.3.2:3000/profile", requestOptions)
-            .then(response => response.text())
+            .then(response => response.json())
             .then(result => {
-                const parsedResult = JSON.parse(result);
-                username = parsedResult.name;
-                console.log(username);
-                setUname(username);
+                setUname(result.name);
+                setPayment(result.payment);
+                setAccountBallance(result.accountBallance)
             })
             .catch(error => console.log('error', error));
 
-        console.log(username);
     }
 
     callFromBackEnd();
@@ -74,10 +75,27 @@ function Profile({ navigation }) {
                     <Text style={{ color: "#FFF" }}>Xin chào !</Text>
                     <Text style={{ color: "#FFF", fontSize: 20 }}>{uname}</Text>
                 </View>
+                <TouchableOpacity style={{ position: 'absolute', right: 50 }}>
+                    <Icon name="pencil" size={25} color="#fff" />
+                </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.signInBtn} onPress={() => { signOut() }}>
+            <View style={styles.ballanceContainer}>
+                <Text style={{ fontSize: 18, color: '#000' }}> Số dư ví tiền của bạn</Text>
+                <View style={{display: 'flex', flexDirection: 'row', height: 'auto', alignItems: 'center'}}>
+                    <Text style={{ fontSize: 40, color: '#000', marginTop: 8 }}>{accountBallance}</Text>
+                    
+                </View>
+
+            </View>
+         {/*    <TouchableOpacity style={styles.addCashBtn}>
                 <Text
-                    style={{ color: "#fff", textTransform: "uppercase", fontWeight: "bold", marginLeft: 50 }}
+                    style={{ color: "#000", textTransform: "uppercase", fontSize: 18 }}
+                >
+                    Nạp tiền</Text>
+            </TouchableOpacity> */}
+            <TouchableOpacity style={styles.signOutBtn} onPress={() => { signOut() }}>
+                <Text
+                    style={{ color: "#fff", textTransform: "uppercase", fontSize: 18 }}
                 >
                     Đăng xuất</Text>
             </TouchableOpacity>
@@ -89,6 +107,8 @@ const styles = StyleSheet.create({
     background: {
         width: "100%",
         height: "100%",
+        display: 'flex',
+        alignItems: 'center'
     },
     infoContainer: {
         width: "100%",
@@ -99,13 +119,37 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: 20
     },
-    signInBtn: {
+    ballanceContainer: {
+        width: '90%',
+        height: 400,
+        marginTop: 24,
+        backgroundColor: '#fff',
+        borderColor: '#000',
+        borderWidth: 1,
+        padding: 20
+    },
+    addCashBtn: {
         position: 'absolute',
-        width: '100%',
+        width: '90%',
+        backgroundColor: "#FFF",
+        justifyContent: 'center',
+        height: 54,
+        bottom: 80,
+        marginLeft: 20,
+        alignItems: 'center',
+        color: "#2957C2",
+        borderColor: '#000',
+        borderWidth: 1,
+    },
+    signOutBtn: {
+        position: 'absolute',
+        width: '90%',
         backgroundColor: "#2957C2",
         justifyContent: 'center',
         height: 54,
-        bottom: 0,
+        bottom: 20,
+        marginLeft: 20,
+        alignItems: 'center'
     }
 });
 

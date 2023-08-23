@@ -1,46 +1,95 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
     Text,
     TextInput,
-    FlatList,
     View,
     StyleSheet,
     TouchableOpacity,
     PermissionsAndroid,
-    Button,
     ScrollView,
 } from 'react-native'
 
 import MapView, { Polyline, Callout, Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import SearchableDropdown from 'react-native-searchable-dropdown';
-
 import Icon from 'react-native-vector-icons/FontAwesome'
-
+import Tts from 'react-native-tts';
 import Geolocation from 'react-native-geolocation-service';
-import MapViewDirections from 'react-native-maps-directions';
 import data from '../backend/data.json';
 
 function MapScreen({ navigation }) {
+    // useStaae variables for detecting places coordinates
     const [currentLongtitude, setCurrentLongtitude] = useState(0);
     const [currentLatitude, setCurrentLatitude] = useState(0);
     const [desLat, setDesLat] = useState(0);
     const [desLng, setDesLng] = useState(0);
-    const [showDirection, setShowDirection] = useState(false);
-    const [show, setShow] = useState(false);
-    const [routes, setRoutes] = useState([]);
     const [posLat, setPosLat] = useState(null);
     const [posLng, setPosLng] = useState(null);
+
+    // useState variables for routing function
+    const [routes, setRoutes] = useState([]);
+    const [distance, setDistance] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [instructionsArray, setInstructionsArray] = useState([]);
+
+    // Storing parking places' details
     const [pData, setPdata] = React.useState({
         nameParking: '',
         status: '',
         price: '',
         slotLeft: '',
+        distance: '',
+        duration: '',
     })
+
+    // Storing data for places autocomplate function
     const [inputValue, setInputValue] = useState('');
     const [predictions, setPredictions] = useState([]);
+
+    // useState variables for hiding and showing components
     const [showPredictions, setShowPredictions] = useState(false);
     const [showMarker, setShowMarker] = useState(false);
     const [chosen, setChosen] = useState(false);
+    const [booking, setBooking] = useState(false);
+    const [userStatus, setUserStatus] = useState(false);
+    const [showDirection, setShowDirection] = useState(false);
+    const [show, setShow] = useState(false);
+    const [showRoutes, setShowRoutes] = useState(false);
+
+    const mapViewRef = useRef(null);
+
+    //Test position
+    const testLocation = {
+        latitude: 21.016814960367533,
+        longitude: 105.81790203356712
+    }
+
+    //Test fit coordinates
+    const coordinatesToFocus = [
+        {
+            latitude: 21.016814960367533,
+            longitude: 105.81790203356712
+        }
+    ]
+
+    //Fit screen values
+    const edgePaddingValue = 70;
+    const edgePadding = {
+        top: edgePaddingValue,
+        right: edgePaddingValue,
+        bottom: edgePaddingValue,
+        left: edgePaddingValue,
+    }
+
+    const dataR = {
+        'Parking': 'G2_UET_VNU',
+        'User': 'leducanh',
+        'TimeBooking': '2023-08-20 14:30:00'
+    };
+
+    //Functions
+    Tts.setDefaultLanguage('vi-VN');
+    Tts.setDefaultVoice('vi-VN-language');
+    //Tts.voices().then(voices => console.log(voices));
 
     const handleInputChange = async (text) => {
         setInputValue(text);
@@ -48,13 +97,13 @@ function MapScreen({ navigation }) {
             method: 'GET',
         };
         const apiKey = 'ae0534df26a0484f9977c8dbadfc05e5';
-        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${text}&format=json&apiKey=${apiKey}`;
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${text}&format=json&filter=countrycode:vn&apiKey=${apiKey}`;
         console.log(url);
         fetch(url, requestOptions)
             .then(response => response.json())
             .then(result => {
                 var arr = [];
-                for (var i = 0; i < 5; i++) {
+                for (var i = 0; i < result.results.length; i++) {
                     let id = i + 1;
                     const prediction = {
                         id: id,
@@ -69,12 +118,38 @@ function MapScreen({ navigation }) {
             .catch(error => console.log('error', error));
     };
 
+    const requestBooking = () => {
+        var requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataR)
+        };
+        const url = 'http://192.168.43.178:8080/webhook';
+        fetch(url, requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Yêu cầu thất bại.');
+                }
+            })
+            .then(data => {
+                console.log('Yêu cầu thành công:');
+                console.log(data);
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+            });
+    }
+
     const getRouteFromApi = () => {
         var requestOptions = {
             method: 'GET',
         };
         const apiKey = 'ae0534df26a0484f9977c8dbadfc05e5';
-        const url = `https://api.geoapify.com/v1/routing?waypoints=21.02927009995365,105.8560117698695|${desLat},${desLng}&mode=drive&apiKey=ae0534df26a0484f9977c8dbadfc05e5`;
+        const url = `https://api.geoapify.com/v1/routing?waypoints=${testLocation.latitude},${testLocation.longitude}|${desLat},${desLng}&mode=drive&apiKey=ae0534df26a0484f9977c8dbadfc05e5`;
         fetch(url, requestOptions)
             .then(response => response.json())
             .then(result => {
@@ -86,6 +161,16 @@ function MapScreen({ navigation }) {
                     }
                 })
                 setRoutes(arrayOfCoordinates);
+                console.log(routes);
+                const newArr = result.features[0].properties.legs[0].steps.map(
+                    obj => obj.instruction.text
+                );
+                setInstructionsArray(newArr);
+                const distance = result.features[0].properties.distance / 1000;
+                const duration = result.features[0].properties.time / 60;
+                setDistance(distance.toFixed(2));
+                setDuration(duration.toFixed(2));
+                Tts.speak(instructionsArray[0]);
             })
             .catch(error => console.log('error', error));
     }
@@ -101,6 +186,7 @@ function MapScreen({ navigation }) {
             .then(result => console.log(result))
             .catch(error => console.log('error', error));
     }
+
 
     useEffect(() => {
         const requestLocationPermission = async () => {
@@ -139,7 +225,7 @@ function MapScreen({ navigation }) {
     if (chosen) {
         console.log(posLat);
         console.log(posLng);
-        _map.animateToRegion({
+        mapViewRef.current?.animateToRegion({
             latitude: posLat,
             longitude: posLng,
             latitudeDelta: 0.01,
@@ -154,7 +240,7 @@ function MapScreen({ navigation }) {
     return (
         <View style={{ marginTop: 0, flex: 1 }}>
             <MapView
-                ref={component => this._map = component}
+                ref={mapViewRef}
                 provider={PROVIDER_GOOGLE} // remove if not using Google Mapsa
                 style={styles.map}
                 region={{
@@ -167,8 +253,9 @@ function MapScreen({ navigation }) {
                 <Marker
                     title='Bạn đang ở đây'
                     pinColor='white'
-                    coordinate={{ latitude: currentLatitude, longitude: currentLongtitude }}
-                    image={require('./img/location.png')}
+                    //coordinate={{ latitude: currentLatitude, longitude: currentLongtitude }}
+                    coordinate={{ latitude: testLocation.latitude, longitude: testLocation.longitude }}
+                    image={require('./img/my-location.png')}
                 ></Marker>
                 <Circle
                     center={{ latitude: currentLatitude, longitude: currentLongtitude }}
@@ -191,7 +278,7 @@ function MapScreen({ navigation }) {
                         key={index}
                         title={item.nameParking}
                         coordinate={{ latitude: item.latitude, longitude: item.longitude }}
-                        image={require('./img/parking-sign.png')}
+                        image={require('./img/pin.png')}
                         onPress={() => {
                             setDesLat(item.latitude);
                             setDesLng(item.longitude);
@@ -222,14 +309,17 @@ function MapScreen({ navigation }) {
             </MapView>
 
             <View style={styles.dropdown}>
-                <TextInput
-                    placeholder="Nhập vị trí bạn muốn đến"
-                    keyboardType="default"
-                    value={inputValue}
-                    onChangeText={handleInputChange}
-                    onPressIn={() => { setShowPredictions(true) }}
-                    style={{ padding: 10, fontSize: 16 }}
-                />
+                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                    <TextInput
+                        placeholder="Nhập vị trí bạn muốn đến"
+                        keyboardType="default"
+                        value={inputValue}
+                        onChangeText={handleInputChange}
+                        onPressIn={() => { setShowPredictions(true) }}
+                        style={{ padding: 10, fontSize: 16, width: '90%' }}
+                    />
+                    <Icon name="search" size={20} color="#2957C2" />
+                </View>
                 {
                     showPredictions && (
                         <ScrollView>
@@ -260,6 +350,20 @@ function MapScreen({ navigation }) {
                 }
             </View>
 
+
+            <TouchableOpacity
+                style={styles.locationBtn}
+                onPress={() => {
+                    mapViewRef.current?.animateToRegion({
+                        latitude: currentLatitude,
+                        longitude: currentLongtitude,
+                        latitudeDelta: 0.01,
+                        longitudeDelta: 0.01,
+                    }, 1000);
+                    console.log('Tapped')
+                }}>
+                <Icon name="location-arrow" size={20} color="white" />
+            </TouchableOpacity>
             {show && (
                 <View style={styles.marker_callout}>
                     <View style={{ display: 'flex', flexDirection: 'row' }}>
@@ -279,28 +383,140 @@ function MapScreen({ navigation }) {
                     <TouchableOpacity
                         style={styles.bookingBtn}
                         onPress={() => {
-                            setShowDirection(true);
-                            getRouteFromApi();
+                            //setShowDirection(true);
+                            //getRouteFromApi();
+                            setBooking(true);
+                            setShow(false);
                         }}
                     >
-                        <Text style={{ color: "#fff", fontSize: 20 }}>Đặt chỗ ngay</Text>
+                        <Text style={{ color: "#fff", fontSize: 18, textTransform: 'uppercase' }}>Lựa chọn</Text>
                     </TouchableOpacity>
                 </View>
             )
             }
-            <TouchableOpacity
-                style={styles.locationBtn}
-                onPress={() => {
-                    _map.animateToRegion({
-                        latitude: currentLatitude,
-                        longitude: currentLongtitude,
-                        latitudeDelta: 0.01,
-                        longitudeDelta: 0.01,
-                    }, 1000);
-                    console.log('Tapped')
-                }}>
-                <Icon name="location-arrow" size={20} color="white" />
-            </TouchableOpacity>
+            {
+                booking && (
+                    <View style={styles.bookingDetails}>
+                        {!userStatus ? (
+                            <View>
+                                <TouchableOpacity onPress={() => {
+                                    setBooking(false);
+                                }}>
+                                    <Icon name="long-arrow-left" size={25} color="#2957C2" />
+                                </TouchableOpacity>
+                                <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', marginTop: 24 }}>Hoàn thiện yêu cầu đặt chỗ</Text>
+                                <Text style={{ fontSize: 16, color: '#000', marginTop: 12 }}>Biển số xe của bạn là gì</Text>
+                                <TextInput
+                                    style={styles.plateInput}
+                                    placeholder='30A123.45'
+                                ></TextInput>
+                                <TouchableOpacity
+                                    style={styles.bookingBtn}
+                                    onPress={() => {
+                                        //requestBooking();
+                                        setUserStatus(true);
+                                    }}
+                                >
+                                    <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Đặt ngay</Text>
+                                </TouchableOpacity>
+                                <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', marginTop: 24 }}>Đặt trước</Text>
+                                <Text style={{ fontSize: 16, color: '#000', marginTop: 12 }}>Bạn sẽ đỗ xe trong bao lâu</Text>
+                                <View style={styles.scheduleBooking}>
+                                    <Text style={{}}>Từ</Text>
+                                    <TextInput
+                                        style={{ borderColor: '#000', borderWidth: 1, width: 36 }}
+                                    />
+                                    <Text>Đến</Text>
+                                    <TextInput
+                                        style={{ borderColor: '#000', borderWidth: 1, width: 36 }}
+                                    />
+                                </View>
+                                <TouchableOpacity style={styles.bookingBtn}>
+                                    <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Lên lịch</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <View style={{ alignItems: 'center', padding: 30 }}>
+                                <Icon name="check-circle" size={50} color='green' />
+                                <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', margin: 24 }}>Đặt chỗ thành công</Text>
+                                <TouchableOpacity
+                                    style={styles.bookingBtn}
+                                    onPress={() => {
+                                        setShowDirection(true);
+                                        getRouteFromApi();
+                                        setBooking(false);
+                                        setUserStatus(false);
+                                        setShowRoutes(true);
+                                        mapViewRef.current?.fitToCoordinates([{ latitude: testLocation.latitude, longitude: testLocation.longitude }, { latitude: desLat, longitude: desLng },], {
+                                            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+                                            animated: true,
+                                        });
+                                    }}
+                                >
+                                    <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Điều hướng tới bãi xe</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                        )}
+                    </View>
+                )
+            }
+            {
+                showRoutes && (
+                    <View style={styles.navigationContainer}>
+                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+                            <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold' }}>Đang điều hướng đến vị trí ...</Text>
+                            <TouchableOpacity
+                                style={{ position: 'absolute', right: 10 }}
+                                onPress={() => {
+                                    setShowRoutes(false);
+                                    setShowDirection(false);
+                                    setCurrentIndex(0);
+                                }}
+                            >
+                                <Icon name="close" size={25} color="#2957C2" />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', gap: 5 }}>
+                            <Icon name="road" size={16} color="#2957C2" />
+                            <Text style={{ marginRight: 10 }}>{distance} km</Text>
+                            <Icon name="clock-o" size={16} color="#2957C2" />
+                            <Text>{duration} phút</Text>
+                        </View>
+                        <View style={{ height: 70, alignItems: 'center', justifyContent: 'center' }}>
+                            <Text style={{ color: '#000', fontSize: 16 }}>{instructionsArray[currentIndex]}</Text>
+                        </View>
+                        <View style={{ display: 'flex', flexDirection: 'row' }}>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setCurrentIndex(currentIndex - 1);
+                                }}
+                                style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <Text style={{ color: '#2957C2', fontWeight: 'bold' }}>Trở lại</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    if (currentIndex < instructionsArray.length-1) {
+                                        setCurrentIndex(currentIndex + 1);
+                                        console.log(routes[currentIndex].latitude)
+                                        /*   mapViewRef.current?.animateToRegion({
+                                             latitude: routes[currentIndex].latitude,
+                                             longitude: routes[currentIndex].longitude,
+                                             latitudeDelta: 0.01,
+                                             longitudeDelta: 0.01,
+                                         }, 1000); */
+                                        Tts.speak(instructionsArray[currentIndex+1]);
+                                    }
+                                }}
+                                style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <Text style={{ color: '#2957C2', fontWeight: 'bold' }}>Tiếp theo</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                )
+            }
         </View>
     )
 }
@@ -313,10 +529,13 @@ const styles = StyleSheet.create({
     },
     dropdown: {
         position: 'absolute',
-        width: '100%',
+        width: '90%',
+        marginLeft: 20,
         height: 'auto',
-        top: 0,
-        backgroundColor: '#fff'
+        top: 20,
+        backgroundColor: '#fff',
+        borderColor: '#000',
+        borderWidth: 1
     },
     map: {
         ...StyleSheet.absoluteFillObject,
@@ -348,12 +567,24 @@ const styles = StyleSheet.create({
         right: 20,
     },
     bookingBtn: {
-        width: 200,
+        width: '100%',
         height: 50,
         backgroundColor: '#2957C2',
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 10
+    },
+    bookingDetails: {
+        position: 'absolute',
+        top: 100,
+        left: 20,
+        width: '90%',
+        height: 'auto',
+        backgroundColor: '#fff',
+        borderColor: '#000',
+        borderWidth: 1,
+        display: 'flex',
+        padding: 10
     },
     text1: {
         color: 'white',
@@ -362,18 +593,49 @@ const styles = StyleSheet.create({
     marker_callout: {
         backgroundColor: '#fff',
         position: 'absolute',
-        width: '100%',
+        width: '90%',
         height: 226,
-        bottom: 0,
-        left: 0,
+        bottom: 20,
+        left: 20,
         display: 'flex',
         flexDirection: 'column',
-        padding: 30
+        padding: 30,
+        borderColor: '#000',
+        borderWidth: 1
     },
     predictions: {
         height: 55,
         padding: 10,
         color: '#000'
+    },
+    plateInput: {
+        width: '90%',
+        padding: 10,
+        borderColor: '#000',
+        borderWidth: 1,
+        marginTop: 8,
+        marginBottom: 24
+    },
+    scheduleBooking: {
+        display: 'flex',
+        flexDirection: 'row',
+        height: 28,
+        alignItems: 'center',
+        gap: 8,
+        marginTop: 8,
+        marginBottom: 24
+    },
+    navigationContainer: {
+        position: 'absolute',
+        backgroundColor: '#fff',
+        width: '90%',
+        height: 'auto',
+        borderColor: '#000',
+        borderWidth: 1,
+        top: 20,
+        left: 20,
+        display: 'flex',
+        padding: 10
     }
 });
 

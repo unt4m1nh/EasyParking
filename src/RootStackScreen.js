@@ -9,8 +9,8 @@ const RootStack = createNativeStackNavigator();
 
 const RootStackScreen = ({navigation}) => (
     <RootStack.Navigator headerMode='none'>
-        <RootStack.Screen name="LoginScreen" component={Login}/>
-        <RootStack.Screen name="SignUpScreen" component={SignUp}/>
+        <RootStack.Screen name="LoginScreen" component={Login} options={{headerShown: false}}/>
+        <RootStack.Screen name="SignUpScreen" component={SignUp} options={{headerShown: false}}/>
     </RootStack.Navigator>
 );
 

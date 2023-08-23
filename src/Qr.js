@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Text, View,
     StyleSheet,
@@ -16,6 +16,7 @@ function QrScreen({ navigation }) {
     const [qrData, setQRData] = useState('');
     const [showQR, setShowQR] = useState(false);
     const [userStatus, setUserStatus] = useState(false);
+    const [generated, setGenerated] = useState(false);
     const [token, setToken] = useState(null);
     const [message, setMessage] = useState('Bấm nút để tạo mã QR')
 
@@ -53,8 +54,8 @@ function QrScreen({ navigation }) {
             .then(result => {
                 const parsedResult = JSON.parse(result);
                 status = parsedResult.status;
-                console.log(status);
                 if (status === 1) {
+                    //generateQRCode();
                     setUserStatus(true);
                 } else {
                     setUserStatus(false);
@@ -65,7 +66,23 @@ function QrScreen({ navigation }) {
         //console.log(username);
     }
 
-    getUserStatus();
+    useEffect(() => {
+        const interval = setInterval(() => {
+            getUserStatus();
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+    //getUserStatus();
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (generated === false) {
+                generateQRCode();
+                setGenerated(true);
+            }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
 
     function generateRandomString(length) {
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -81,15 +98,16 @@ function QrScreen({ navigation }) {
 
     const generateQRCode = () => {
         // if (!userStatus) {
-            const data = generateRandomString(10);
-            console.log(data);
-            setQRData(data);
-            setShowQR(true);
-            setMessage('Đây là mã QR của bạn');
-  /*       } else {
-            setMessage('Không thể tạo mới QR trong phiên gửi')
-        } */
+        const data = generateRandomString(10);
+        console.log(data);
+        setQRData(data);
+        setShowQR(true);
+        setMessage('Đây là mã QR của bạn');
+        /*       } else {
+                  setMessage('Không thể tạo mới QR trong phiên gửi')
+              } */
     }
+
     return (
         <View style={styles.background}>
             {
@@ -100,25 +118,11 @@ function QrScreen({ navigation }) {
                         display: 'flex', flexDirection: 'column',
                         alignItems: 'center'
                     }}>
-                        <Text style={{color: '#000', fontSize: 20}}>{message}</Text>
+                        <Text style={{ color: '#000', fontSize: 20 }}>{message}</Text>
                         <View style={styles.qrContainer}>
-                            {showQR ? (
-                                <QRCode value={qrData} size={250} />
-                            ) : (
-                                <TouchableOpacity >
-                                   
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    </TouchableOpacity>
-                )
-            }
-            {
-                userStatus && (
-                    <TouchableOpacity
-                        style={styles.generatebtn} onPress={generateQRCode}>
-                        <View>
-                            <Text style={{ color: 'white', fontSize: 18 }}>Generate QR Code</Text>
+
+                            <QRCode value={qrData} size={250} />
+
                         </View>
                     </TouchableOpacity>
                 )
@@ -145,8 +149,7 @@ const styles = StyleSheet.create({
         width: 300,
         height: 300,
         borderColor: 'black',
-        borderWidth: 3,
-        borderRadius: 20,
+        borderWidth: 1,
         alignItems: 'center',
         justifyContent: 'center'
     }
