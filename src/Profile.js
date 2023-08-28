@@ -28,14 +28,30 @@ function Profile({ navigation }) {
         }
     };
 
+    const [fdata, setFdata] = React.useState({
+        name: '',
+        email: '',
+        plate: '',
+        phoneNumber: '',
+    })
+
+
     const [uname, setUname] = useState(null);
+    const [id, setUid] = useState(null);
     const [accountBallance, setAccountBallance] = useState(null);
     const [payment, setPayment] = useState(null);
     const [token, setToken] = useState(null);
+    const [showUpdate, setShowUpdate] = useState(false);
+
+
+    const testUpdateData = {
+        name: 'Vu Thai Duy',
+        plate: '30K555.55'
+    }
+
     retrieveToken().then((storedToken) => {
         if (storedToken) {
             // Use the stored token for authentication
-            console.log(storedToken);
             setToken(storedToken);
         } else {
             // Token not available or retrieval failed
@@ -44,6 +60,7 @@ function Profile({ navigation }) {
 
     const callFromBackEnd = () => {
         var myHeaders = new Headers();
+        console.log(token);
         myHeaders.append("Authorization", "Bearer " + token);
         var requestOptions = {
             method: 'GET',
@@ -54,12 +71,50 @@ function Profile({ navigation }) {
         fetch("http://10.0.3.2:3000/profile", requestOptions)
             .then(response => response.json())
             .then(result => {
+                setUid(result._id);
                 setUname(result.name);
                 setPayment(result.payment);
-                setAccountBallance(result.accountBallance)
+                setAccountBallance(result.accountBallance);
+                //setFdata({ ...fdata, name: uname, email: result.email, plate: result.plate, phoneNumber: result.phoneNumber })
             })
             .catch(error => console.log('error', error));
 
+    }
+
+    //console.log(id);
+
+    const updateUserInfo = () => {
+
+        var raw = JSON.stringify({
+            "name": fdata.name,
+            "email": fdata.email,
+            "phoneNumber": fdata.phoneNumber,
+            "plate": fdata.plate,
+        })
+
+        var requestOptions = {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: raw
+        };
+
+        fetch(`http://10.0.3.2:3000/update/${id}`, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                console.log('Da update');
+            })
+            .catch(error => console.log('error', error));
+    }
+
+    const deleteToken = async (storedToken) => {
+        try {
+            await AsyncStorage.removeItem(storedToken);
+            console.log('Item deleted successfully');
+        } catch (error) {
+            console.error('Error deleting item:', error);
+        }
     }
 
     callFromBackEnd();
@@ -75,30 +130,91 @@ function Profile({ navigation }) {
                     <Text style={{ color: "#FFF" }}>Xin chào !</Text>
                     <Text style={{ color: "#FFF", fontSize: 20 }}>{uname}</Text>
                 </View>
-                <TouchableOpacity style={{ position: 'absolute', right: 50 }}>
+                <TouchableOpacity
+                    style={{ position: 'absolute', right: 50 }}
+                    onPress={() => {
+                        setShowUpdate(true);
+                    }}
+                >
                     <Icon name="pencil" size={25} color="#fff" />
                 </TouchableOpacity>
             </View>
             <View style={styles.ballanceContainer}>
                 <Text style={{ fontSize: 18, color: '#000' }}> Số dư ví tiền của bạn</Text>
-                <View style={{display: 'flex', flexDirection: 'row', height: 'auto', alignItems: 'center'}}>
+                <View style={{ display: 'flex', flexDirection: 'row', height: 'auto', alignItems: 'center' }}>
                     <Text style={{ fontSize: 40, color: '#000', marginTop: 8 }}>{accountBallance}</Text>
-                    
+
                 </View>
 
             </View>
-         {/*    <TouchableOpacity style={styles.addCashBtn}>
+            {/*    <TouchableOpacity style={styles.addCashBtn}>
                 <Text
                     style={{ color: "#000", textTransform: "uppercase", fontSize: 18 }}
                 >
                     Nạp tiền</Text>
             </TouchableOpacity> */}
-            <TouchableOpacity style={styles.signOutBtn} onPress={() => { signOut() }}>
+            <TouchableOpacity style={styles.signOutBtn} onPress={() => {
+                 signOut(); 
+                 deleteToken(token);
+            }}>
                 <Text
                     style={{ color: "#fff", textTransform: "uppercase", fontSize: 18 }}
                 >
                     Đăng xuất</Text>
             </TouchableOpacity>
+            {
+                showUpdate && (
+                    <View style={styles.updateContainer}>
+                        <Text style={styles.header}>Cập nhật thông tin tài khoản</Text>
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.text}>Họ và tên</Text>
+                            <TextInput
+                                style={styles.input}
+                                //onPressIn={() => setErrorMsg(null)}
+                                onChangeText={(text) => setFdata({ ...fdata, name: text })}
+                                value={fdata.name}
+                            />
+                        </View>
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.text}>Email</Text>
+                            <TextInput
+                                style={styles.input}
+                                //onPressIn={() => setErrorMsg(null)}
+                                value={fdata.email}
+                                onChangeText={(text) => setFdata({ ...fdata, email: text })}
+                            />
+                        </View>
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.text}>Biển số xe</Text>
+                            <TextInput
+                                style={styles.input}
+                                //onPressIn={() => setErrorMsg(null)}
+                                value={fdata.plate}
+                                onChangeText={(text) => setFdata({ ...fdata, plate: text })}
+                                secureTextEntry={true}
+                            />
+                        </View>
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.text}>Số điện thoại</Text>
+                            <TextInput
+                                style={styles.input}
+                                //onPressIn={() => setErrorMsg(null)}
+                                onChangeText={(text) => setFdata({ ...fdata, phoneNumber: text })}
+                                value={fdata.phoneNumber}
+                            />
+                        </View>
+                        <TouchableOpacity style={styles.updateBtn} onPress={() => {
+                            setShowUpdate(false);
+                            updateUserInfo();
+                        }}>
+                            <Text
+                                style={{ color: "#fff", textTransform: "uppercase", fontWeight: "bold" }}
+                            >
+                                Cập nhật</Text>
+                        </TouchableOpacity>
+                    </View>
+                )
+            }
         </View>
     )
 }
@@ -128,6 +244,17 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         padding: 20
     },
+    updateContainer: {
+        position: "absolute",
+        top: 0,
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        backgroundColor: '#fff'
+
+    },
     addCashBtn: {
         position: 'absolute',
         width: '90%',
@@ -150,6 +277,38 @@ const styles = StyleSheet.create({
         bottom: 20,
         marginLeft: 20,
         alignItems: 'center'
+    },
+    inputContainer: {
+        width: "100%",
+        height: "auto",
+        padding: 18,
+    },
+    input: {
+        width: "100%",
+        height: 40,
+        borderWidth: 1,
+        borderColor: "#979797",
+        padding: 10,
+        marginTop: 4,
+    },
+    header: {
+        marginTop: 33,
+        color: "#2957C2",
+        fontSize: 22,
+        fontWeight: "bold"
+    },
+    text: {
+        fontSize: 14,
+        color: 'black',
+    },
+    updateBtn: {
+        position: 'absolute',
+        backgroundColor: "#2957C2",
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: "90%",
+        height: 44,
+        bottom: 20,
     }
 });
 

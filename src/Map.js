@@ -170,7 +170,7 @@ function MapScreen({ navigation }) {
                 const duration = result.features[0].properties.time / 60;
                 setDistance(distance.toFixed(2));
                 setDuration(duration.toFixed(2));
-                Tts.speak(instructionsArray[0]);
+                //Tts.speak(instructionsArray[0]);
             })
             .catch(error => console.log('error', error));
     }

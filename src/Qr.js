@@ -13,13 +13,6 @@ import QRCode from 'react-native-qrcode-svg';
 
 
 function QrScreen({ navigation }) {
-    const [qrData, setQRData] = useState('');
-    const [showQR, setShowQR] = useState(false);
-    const [userStatus, setUserStatus] = useState(false);
-    const [generated, setGenerated] = useState(false);
-    const [token, setToken] = useState(null);
-    const [message, setMessage] = useState('Bấm nút để tạo mã QR')
-
     const retrieveToken = async () => {
         try {
             const authToken = await AsyncStorage.getItem('authToken');
@@ -30,59 +23,71 @@ function QrScreen({ navigation }) {
         }
     };
 
+    const [qrData, setQRData] = useState('');
+    const [showQR, setShowQR] = useState(false);
+    const [userStatus, setUserStatus] = useState(false);
+    const [generated, setGenerated] = useState(false);
+    const [token, setToken] = useState(null);
+    const [message, setMessage] = useState('Bấm nút để tạo mã QR')
+
+
     retrieveToken().then((storedToken) => {
         if (storedToken) {
             // Use the stored token for authentication
-            console.log(storedToken);
             setToken(storedToken);
         } else {
+            console.log('Hazel');
             // Token not available or retrieval failed
         }
     });
 
     const getUserStatus = () => {
         var myHeaders = new Headers();
-        myHeaders.append("Authorization", "Bearer " + token);
-        var requestOptions = {
-            method: 'GET',
-            headers: myHeaders,
-            redirect: 'follow'
-        };
+        console.log(token);
+        if (token) {
+            myHeaders.append("Authorization", "Bearer " + token);
+            var requestOptions = {
+                method: 'GET',
+                headers: myHeaders,
+                redirect: 'follow'
+            };
 
-        fetch("http://10.0.3.2:3000/profile", requestOptions)
-            .then(response => response.text())
-            .then(result => {
-                const parsedResult = JSON.parse(result);
-                status = parsedResult.status;
-                if (status === 1) {
-                    //generateQRCode();
-                    setUserStatus(true);
-                } else {
-                    setUserStatus(false);
-                }
-            })
-            .catch(error => console.log('error', error));
+            fetch("http://10.0.3.2:3000/profile", requestOptions)
+                .then(response => response.json())
+                .then(result => {
+                    console.log(result.status);
+                    if (result.status === 1) {
+                         //generateQRCode();
+                         setUserStatus(true);
+                     } else {
+                         setUserStatus(false);
+                     }
+                })
+                .catch(error => console.log('error', error));
+        } else {
+            console.log("Error vkl");
+        }
 
         //console.log(username);
     }
+
 
     useEffect(() => {
         const interval = setInterval(() => {
             getUserStatus();
         }, 1000);
         return () => clearInterval(interval);
-    }, []);
-    //getUserStatus();
+    }, [token]);
+
 
     useEffect(() => {
         const interval = setInterval(() => {
             if (generated === false) {
                 generateQRCode();
-                setGenerated(true);
             }
         }, 1000);
         return () => clearInterval(interval);
-    }, []);
+    }, [generated]); 
 
     function generateRandomString(length) {
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -103,10 +108,13 @@ function QrScreen({ navigation }) {
         setQRData(data);
         setShowQR(true);
         setMessage('Đây là mã QR của bạn');
+        setGenerated(true);
         /*       } else {
                   setMessage('Không thể tạo mới QR trong phiên gửi')
               } */
     }
+
+    console.log(userStatus);
 
     return (
         <View style={styles.background}>

@@ -10,6 +10,7 @@ const fs = require('fs-extra');
 
 // Optional: If you want to use the mongoose package with `require`
 const mongoose = require("mongoose");
+const User = require("./models/User.js");
 
 // Optional: If you want to use the dotenv package with `require`
 require("dotenv").config();
@@ -30,9 +31,6 @@ app.listen(port, () => {
 });
 
 app.get('/profile', requireToken, (req, res) => {
-  // Access user information from req.user
-  //const userId = req.user.userId;
-  // Fetch user's profile from the database and send it as a response
   console.log(req.user.idUser);
   res.send(req.user);
 });
@@ -44,5 +42,16 @@ app.get('/parking', async (req, res) => {
     res.json(parkingList);
   } catch (error) {
     res.status(500).json({ error: 'Error retrieving users' });
+  }
+});
+
+app.patch('/update/:id',  async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findOneAndUpdate({_id: userId}, req.body, {new: true});
+    console.log(user)
+    res.json({user});
+  } catch (error) {
+    res.status(500).json({ error: 'Error updating user info' });
   }
 });
