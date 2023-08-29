@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 import Tts from 'react-native-tts';
 import Geolocation from 'react-native-geolocation-service';
 import data from '../backend/data.json';
+import DatePicker from 'react-native-date-picker'
 
 function MapScreen({ navigation }) {
     // useStaae variables for detecting places coordinates
@@ -56,6 +57,12 @@ function MapScreen({ navigation }) {
     const [showRoutes, setShowRoutes] = useState(false);
 
     const mapViewRef = useRef(null);
+
+    //Date Picker variables
+    const [inDate, setIndate] = useState(new Date())
+    const [openPicker1, setOpenPicker1] = useState(false)
+    const [outDate, setOutdate] = useState(new Date())
+    const [openPicker2, setOpenPicker2] = useState(false)
 
     //Test position
     const testLocation = {
@@ -422,13 +429,51 @@ function MapScreen({ navigation }) {
                                 <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', marginTop: 24 }}>Đặt trước</Text>
                                 <Text style={{ fontSize: 16, color: '#000', marginTop: 12 }}>Bạn sẽ đỗ xe trong bao lâu</Text>
                                 <View style={styles.scheduleBooking}>
-                                    <Text style={{}}>Từ</Text>
-                                    <TextInput
-                                        style={{ borderColor: '#000', borderWidth: 1, width: 36 }}
+                                    <Text style={{color: '#000'}}>Từ</Text>
+                                    <Text style={{fontWeight: 'bold', fontSize: 20}}>{inDate.toLocaleString()}</Text>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setOpenPicker1(true);
+                                        }}
+                                    >
+                                        <Text style={{color: '#2957c2', fontWeight: 'bold'}} >Chọn</Text>
+                                    </TouchableOpacity>
+                                    <DatePicker
+                                        modal
+                                        open={openPicker1}
+                                        date={inDate}
+                                        onConfirm={(inDate) => {
+                                            setOpenPicker1(false)
+                                            setIndate(inDate)
+                                            console.log(inDate)
+                                        }}
+                                        onCancel={() => {
+                                            setOpenPicker1(false)
+                                        }}
                                     />
-                                    <Text>Đến</Text>
-                                    <TextInput
-                                        style={{ borderColor: '#000', borderWidth: 1, width: 36 }}
+                                </View>
+                                <View style={styles.scheduleBooking}>
+                                    <Text style={{color: '#000'}}>Đến</Text>
+                                    <Text style={{fontWeight: 'bold', fontSize: 20}}>{outDate.toLocaleString()}</Text>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setOpenPicker2(true);
+                                        }}
+                                    >
+                                        <Text style={{color: '#2957c2', fontWeight: 'bold'}}>Chọn</Text>
+                                    </TouchableOpacity>
+                                    <DatePicker
+                                        modal
+                                        open={openPicker2}
+                                        date={outDate}
+                                        onConfirm={(outDate) => {
+                                            setOpenPicker2(false)
+                                            setOutdate(outDate)
+                                            console.log(outDate)
+                                        }}
+                                        onCancel={() => {
+                                            setOpenPicker2(false)
+                                        }}
                                     />
                                 </View>
                                 <TouchableOpacity style={styles.bookingBtn}>
@@ -439,6 +484,15 @@ function MapScreen({ navigation }) {
                             <View style={{ alignItems: 'center', padding: 30 }}>
                                 <Icon name="check-circle" size={50} color='green' />
                                 <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', margin: 24 }}>Đặt chỗ thành công</Text>
+                                <TouchableOpacity
+                                    style={styles.bookingBtn}
+                                    onPress={() => {
+                                        setBooking(false);
+                                        setUserStatus(false);
+                                    }}
+                                >
+                                    <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Hủy đặt chỗ</Text>
+                                </TouchableOpacity>
                                 <TouchableOpacity
                                     style={styles.bookingBtn}
                                     onPress={() => {
@@ -497,7 +551,7 @@ function MapScreen({ navigation }) {
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => {
-                                    if (currentIndex < instructionsArray.length-1) {
+                                    if (currentIndex < instructionsArray.length - 1) {
                                         setCurrentIndex(currentIndex + 1);
                                         console.log(routes[currentIndex].latitude)
                                         /*   mapViewRef.current?.animateToRegion({
@@ -506,7 +560,7 @@ function MapScreen({ navigation }) {
                                              latitudeDelta: 0.01,
                                              longitudeDelta: 0.01,
                                          }, 1000); */
-                                        Tts.speak(instructionsArray[currentIndex+1]);
+                                        Tts.speak(instructionsArray[currentIndex + 1]);
                                     }
                                 }}
                                 style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}

@@ -8,7 +8,6 @@ require('dotenv').config();
 const router = express.Router();
 
 router.post('/signup', (req, res) => {
-    //res.send('This is sign up page');
     console.log(req.body);
     const {name, email, password, phoneNumber, idUser} = req.body;
     if (!email || !password || !name || !phoneNumber || !idUser) {
@@ -31,7 +30,6 @@ router.post('/signup', (req, res) => {
 
                 try {
                     await user.save();
-                    //res.send({message: "User saved successfully"});
                     const token = jwt.sign({_id: user.id}, process.env.JWT_SECRET);
                     res.send({token});
                 } catch (err) {
