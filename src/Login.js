@@ -30,15 +30,27 @@ function Login({ navigation }) {
     });
 
     const [errorMsg, setErrorMsg] = useState(null);
-    
+
     const storeToken = async (token) => {
         try {
             await AsyncStorage.setItem('authToken', token);
             console.log('Token stored successfully.');
-          } catch (error) {
+        } catch (error) {
             console.error('Error storing token:', error);
-          }  
+        }
     };
+
+    const testcallApi = () => {
+        var requestOptions = {
+            method: 'GET',
+            redirect: 'follow'
+        };
+
+        fetch("https://ep-app-server.onrender.com/parking", requestOptions)
+            .then(response => response.text())
+            .then(result => alert(result))
+            .catch(error => alert('error', error));
+    }
 
     const SendToBackEnd = () => {
         //console.log(fdata);
@@ -48,7 +60,7 @@ function Login({ navigation }) {
             return;
         } else {
             console.log(fdata);
-            fetch("http://10.0.3.2:3000/signin", {
+            fetch("https://ep-app-server.onrender.com/signin", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -56,7 +68,12 @@ function Login({ navigation }) {
                 body: JSON.stringify(fdata),
                 redirect: 'follow'
             })
-                .then(res => res.json()).then(
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                }).then(
                     data => {
                         if (data.error) {
                             setErrorMsg(data.error);
@@ -67,7 +84,10 @@ function Login({ navigation }) {
                             signIn();
                         }
                     }
-                ).catch(error => console.log('error', error));
+                ).catch(error => {
+                    console.log('error', error);
+                    alert('error' + error);
+                });
         }
     }
 
@@ -93,7 +113,12 @@ function Login({ navigation }) {
                 />
             </View>
             <View style={{ width: "90%", }}>
-                <TouchableOpacity style={{ alignItems: "flex-end", marginTop: 10, }}>
+                <TouchableOpacity 
+                    onPress={() => {
+                        testcallApi();
+                    }}
+                    style={{ alignItems: "flex-end", marginTop: 10, }}
+                >
                     <Text style={{ color: "#2957C2", fontWeight: "bold" }}>Quên mật khẩu</Text>
                 </TouchableOpacity>
                 <TouchableOpacity

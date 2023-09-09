@@ -52,7 +52,7 @@ function QrScreen({ navigation }) {
                 redirect: 'follow'
             };
 
-            fetch("http://10.0.3.2:3000/profile", requestOptions)
+            fetch("https://ep-app-server.onrender.com/profile", requestOptions)
                 .then(response => response.json())
                 .then(result => {
                     console.log(result.status);

@@ -89,9 +89,20 @@ function MapScreen({ navigation }) {
 
     const dataR = {
         'Parking': 'G2_UET_VNU',
-        'User': 'leducanh',
+        'User': 'zzkwHTMd',
         'TimeBooking': '2023-08-20 14:30:00'
     };
+
+    const testData2 = {
+        'Parking': 'G2_UET_VNU',
+        'User': 'zzkwHTMd',
+        'date': inDate.toLocaleDateString(),
+        'time': inDate.toLocaleTimeString()
+    }
+
+    const testData3 = {
+        'User': 'zzkwHTMd',
+    }
 
     //Functions
     Tts.setDefaultLanguage('vi-VN');
@@ -133,7 +144,59 @@ function MapScreen({ navigation }) {
             },
             body: JSON.stringify(dataR)
         };
-        const url = 'http://192.168.43.178:8080/webhook';
+        const url = 'http://192.168.43.178:8080/reservation';
+        fetch(url, requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Yêu cầu thất bại.');
+                }
+            })
+            .then(data => {
+                console.log('Yêu cầu thành công:');
+                console.log(data);
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+            });
+    }
+
+    const requestSchedule = () => {
+        var requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(testData2)
+        };
+        const url = 'http://192.168.43.178:8080/booking';
+        fetch(url, requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Yêu cầu thất bại.');
+                }
+            })
+            .then(data => {
+                console.log('Yêu cầu thành công:');
+                console.log(data);
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+            });
+    }
+
+    const cancelBooking = () => {
+        var requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(testData2)
+        };
+        const url = 'http://192.168.43.178:8090/cancel';
         fetch(url, requestOptions)
             .then(response => {
                 if (response.ok) {
@@ -191,7 +254,7 @@ function MapScreen({ navigation }) {
         fetch("http://10.0.3.2:3000/parking", requestOptions)
             .then(response => response.text())
             .then(result => console.log(result))
-            .catch(error => console.log('error', error));
+            .catch(error => console.log(error));
     }
 
 
@@ -241,7 +304,7 @@ function MapScreen({ navigation }) {
         setChosen(false);
     }
 
-
+    callFromBackEnd();
     getLocation();
 
     return (
@@ -265,7 +328,7 @@ function MapScreen({ navigation }) {
                     image={require('./img/my-location.png')}
                 ></Marker>
                 <Circle
-                    center={{ latitude: currentLatitude, longitude: currentLongtitude }}
+                    center={{ latitude: testLocation.latitude, longitude: testLocation.longitude }}
                     radius={1000}
                     strokeColor='#7eb6ff'
                     strokeWidth={2}
@@ -420,7 +483,7 @@ function MapScreen({ navigation }) {
                                 <TouchableOpacity
                                     style={styles.bookingBtn}
                                     onPress={() => {
-                                        //requestBooking();
+                                        requestBooking();
                                         setUserStatus(true);
                                     }}
                                 >
@@ -445,7 +508,7 @@ function MapScreen({ navigation }) {
                                         onConfirm={(inDate) => {
                                             setOpenPicker1(false)
                                             setIndate(inDate)
-                                            console.log(inDate)
+                                            console.log(inDate.toLocaleTimeString())
                                         }}
                                         onCancel={() => {
                                             setOpenPicker1(false)
@@ -469,14 +532,19 @@ function MapScreen({ navigation }) {
                                         onConfirm={(outDate) => {
                                             setOpenPicker2(false)
                                             setOutdate(outDate)
-                                            console.log(outDate)
+                                            console.log(outDate.toLocaleDateString())
                                         }}
                                         onCancel={() => {
                                             setOpenPicker2(false)
                                         }}
                                     />
                                 </View>
-                                <TouchableOpacity style={styles.bookingBtn}>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        requestSchedule();
+                                    }}
+                                    style={styles.bookingBtn}
+                                >
                                     <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Lên lịch</Text>
                                 </TouchableOpacity>
                             </View>
@@ -487,6 +555,7 @@ function MapScreen({ navigation }) {
                                 <TouchableOpacity
                                     style={styles.bookingBtn}
                                     onPress={() => {
+                                        cancelBooking();
                                         setBooking(false);
                                         setUserStatus(false);
                                     }}

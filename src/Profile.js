@@ -14,6 +14,8 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 
 import { AuthContext } from '../component/context';
 
+import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
+
 function Profile({ navigation }) {
 
     const { signOut } = React.useContext(AuthContext);
@@ -43,6 +45,7 @@ function Profile({ navigation }) {
     const [token, setToken] = useState(null);
     const [showUpdate, setShowUpdate] = useState(false);
 
+    const [errorMsg, setErrorMsg] = useState(null);
 
     const testUpdateData = {
         name: 'Vu Thai Duy',
@@ -68,7 +71,7 @@ function Profile({ navigation }) {
             redirect: 'follow'
         };
 
-        fetch("http://10.0.3.2:3000/profile", requestOptions)
+        fetch("https://ep-app-server.onrender.com/profile", requestOptions)
             .then(response => response.json())
             .then(result => {
                 setUid(result._id);
@@ -84,28 +87,33 @@ function Profile({ navigation }) {
     //console.log(id);
 
     const updateUserInfo = () => {
-
-        var raw = JSON.stringify({
-            "name": fdata.name,
-            "email": fdata.email,
-            "phoneNumber": fdata.phoneNumber,
-            "plate": fdata.plate,
-        })
-
-        var requestOptions = {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: raw
-        };
-
-        fetch(`http://10.0.3.2:3000/update/${id}`, requestOptions)
-            .then(response => response.json())
-            .then(result => {
-                console.log('Da update');
+        if (fdata.email === '' && fdata.name === '' && fdata.phoneNumber === '' && fdata.plate === '') {
+            console.log('Bạn cần nhập đủ thông tin')
+            setErrorMsg('Bạn cần nhập đủ thông tin')
+        } else {
+            var raw = JSON.stringify({
+                "name": fdata.name,
+                "email": fdata.email,
+                "phoneNumber": fdata.phoneNumber,
+                "plate": fdata.plate,
             })
-            .catch(error => console.log('error', error));
+
+            var requestOptions = {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: raw
+            };
+
+            fetch(`https://ep-app-server.onrender.com/update/${id}`, requestOptions)
+                .then(response => response.json())
+                .then(result => {
+                    console.log('Da update');
+                    setShowUpdate(false);
+                })
+                .catch(error => console.log('error', error));
+        }
     }
 
     const deleteToken = async (storedToken) => {
@@ -128,7 +136,7 @@ function Profile({ navigation }) {
                 />
                 <View>
                     <Text style={{ color: "#FFF" }}>Xin chào !</Text>
-                    <Text style={{ color: "#FFF", fontSize: 20 }}>{uname}</Text>
+                    <Text style={{ color: "#FFF", fontSize: RFValue(20) }}>{uname}</Text>
                 </View>
                 <TouchableOpacity
                     style={{ position: 'absolute', right: 50 }}
@@ -140,9 +148,9 @@ function Profile({ navigation }) {
                 </TouchableOpacity>
             </View>
             <View style={styles.ballanceContainer}>
-                <Text style={{ fontSize: 18, color: '#000' }}> Số dư ví tiền của bạn</Text>
+                <Text style={{ fontSize: RFValue(18), color: '#000' }}> Số dư ví tiền của bạn</Text>
                 <View style={{ display: 'flex', flexDirection: 'row', height: 'auto', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 40, color: '#000', marginTop: 8 }}>{accountBallance}</Text>
+                    <Text style={{ fontSize: RFValue(40), color: '#000', marginTop: 8 }}>{accountBallance}</Text>
 
                 </View>
 
@@ -154,11 +162,11 @@ function Profile({ navigation }) {
                     Nạp tiền</Text>
             </TouchableOpacity> */}
             <TouchableOpacity style={styles.signOutBtn} onPress={() => {
-                 signOut(); 
-                 deleteToken(token);
+                signOut();
+                deleteToken(token);
             }}>
                 <Text
-                    style={{ color: "#fff", textTransform: "uppercase", fontSize: 18 }}
+                    style={{ color: "#fff", textTransform: "uppercase", fontSize: RFValue(18) }}
                 >
                     Đăng xuất</Text>
             </TouchableOpacity>
@@ -203,8 +211,19 @@ function Profile({ navigation }) {
                                 value={fdata.phoneNumber}
                             />
                         </View>
+                        {
+                            errorMsg ? <Text style={{ color: "red", fontSize: RFValue(15), marginTop: 50 }}>{errorMsg}</Text> : null
+                        }
+                        <TouchableOpacity style={styles.cancelBtn} onPress={() => {
+                            setShowUpdate(false)
+                            setErrorMsg(null)
+                        }}>
+                            <Text
+                                style={{ color: "#fff", textTransform: "uppercase", fontWeight: "bold" }}
+                            >
+                                Hủy</Text>
+                        </TouchableOpacity>
                         <TouchableOpacity style={styles.updateBtn} onPress={() => {
-                            setShowUpdate(false);
                             updateUserInfo();
                         }}>
                             <Text
@@ -294,12 +313,21 @@ const styles = StyleSheet.create({
     header: {
         marginTop: 33,
         color: "#2957C2",
-        fontSize: 22,
+        fontSize: RFValue(22),
         fontWeight: "bold"
     },
     text: {
-        fontSize: 14,
+        fontSize: RFValue(14),
         color: 'black',
+    },
+    cancelBtn: {
+        position: 'absolute',
+        backgroundColor: "#2957C2",
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: "90%",
+        height: 44,
+        bottom: 74,
     },
     updateBtn: {
         position: 'absolute',

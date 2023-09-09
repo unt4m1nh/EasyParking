@@ -40,7 +40,7 @@ function SignUp({ navigation }) {
 
     const SendToBackEnd = () => {
         const idU = generateRandomString(8);
-        setFdata({...fdata, idUser: idU});
+        setFdata({ ...fdata, idUser: idU });
         var raw = JSON.stringify({
             "name": fdata.name,
             "email": fdata.email,
@@ -57,19 +57,19 @@ function SignUp({ navigation }) {
             fdata.idUser == '') {
             setErrorMsg("Bạn cần nhập đủ thông tin");
             return;
-            }  else {
-                if (fdata.password !== fdata.cpassword) {
-                    setErrorMsg("Mật khẩu xác nhận không chính xác");
-                    return;
-                } else {
-                    fetch("http://10.0.3.2:3000/signup", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: raw,
-                        redirect: 'follow'
-                    })
+        } else {
+            if (fdata.password !== fdata.cpassword) {
+                setErrorMsg("Mật khẩu xác nhận không chính xác");
+                return;
+            } else {
+                fetch("https://ep-app-server.onrender.com/signup", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: raw,
+                    redirect: 'follow'
+                })
                     .then(res => res.json()).then(
                         data => {
                             if (data.error) {
@@ -80,8 +80,8 @@ function SignUp({ navigation }) {
                             }
                         }
                     ).catch(error => console.log('error', error));
-                }
             }
+        }
     }
     return (
         <View style={styles.background}>
