@@ -7,7 +7,6 @@ import {
     TouchableOpacity
 } from 'react-native'
 
-import { AuthContext } from '../component/context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -55,8 +54,8 @@ function QrScreen({ navigation }) {
             fetch("https://ep-app-server.onrender.com/profile", requestOptions)
                 .then(response => response.json())
                 .then(result => {
-                    console.log(result.status);
-                    if (result.status === 1) {
+                    console.log(result.booking);
+                    if (result.booking === 1) {
                          //generateQRCode();
                          setUserStatus(true);
                      } else {
@@ -102,16 +101,12 @@ function QrScreen({ navigation }) {
     }
 
     const generateQRCode = () => {
-        // if (!userStatus) {
         const data = generateRandomString(10);
         console.log(data);
         setQRData(data);
         setShowQR(true);
         setMessage('Đây là mã QR của bạn');
         setGenerated(true);
-        /*       } else {
-                  setMessage('Không thể tạo mới QR trong phiên gửi')
-              } */
     }
 
     console.log(userStatus);

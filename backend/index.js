@@ -30,28 +30,50 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
+//Get user's profile
 app.get('/profile', requireToken, (req, res) => {
   console.log(req.user.idUser);
   res.send(req.user);
 });
 
+//Get full parking list
 app.get('/parking', async (req, res) => {
   try {
-    const parkingList = await Parking.find(); // Retrieve all users
+    const parkingList = await Parking.find(); //
     await fs.writeJSON('data.json', parkingList);
     res.json(parkingList);
   } catch (error) {
-    res.status(500).json({ error: 'Error retrieving users' });
+    res.status(500).json({ error: 'Lỗi tìm kiếm bãi xe' });
   }
 });
 
+//Update user info
 app.patch('/update/:id',  async (req, res) => {
+  const {name, email, plate, phoneNumber} = req.body;
+  if (!name || !email || !plate || !phoneNumber) {
+    return res.status(442).send({error: "Vui lòng nhập đủ thông tin"});
+  }
+  
   try {
     const userId = req.params.id;
     const user = await User.findOneAndUpdate({_id: userId}, req.body, {new: true});
     console.log(user)
     res.json({user});
   } catch (error) {
-    res.status(500).json({ error: 'Error updating user info' });
+    res.status(500).json({ error: 'Có lỗi xảy ra trong quá trình cập nhật thông tin người dùng' });
+  }
+});
+
+// In development adding cash function
+app.patch('/add_cash/:id',  async (req, res) => {
+  const {amount} = req.body;
+
+  try {
+    const userId = req.params.id;
+    const user = await User.findOneAndUpdate({_id: userId}, req.body, {new: true});
+    console.log(user)
+    res.json({user});
+  } catch (error) {
+    res.status(500).json({ error: 'Có lỗi xảy ra trong quá trình cập nhật thông tin người dùng' });
   }
 });

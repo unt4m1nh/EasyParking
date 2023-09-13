@@ -14,13 +14,7 @@ import { AuthContext } from '../component/context';
 
 
 
-function Login({ navigation }) {
-    const [userName, onChangeUserName] = React.useState("username123");
-    const [password, onChangePassword] = React.useState("Abc1245");
-
-    //const { logIn } = React.useContext(AuthContext)
-    //const {loginState, setLoginState} = React.useContext(AuthContext);
-    const { setCurrentUser } = React.useContext(AuthContext);
+function Login({ navigation }) {;
 
     const { signIn } = React.useContext(AuthContext);
 
@@ -40,17 +34,7 @@ function Login({ navigation }) {
         }
     };
 
-    const testcallApi = () => {
-        var requestOptions = {
-            method: 'GET',
-            redirect: 'follow'
-        };
-
-        fetch("https://ep-app-server.onrender.com/parking", requestOptions)
-            .then(response => response.text())
-            .then(result => alert(result))
-            .catch(error => alert('error', error));
-    }
+    //"https://ep-app-server.onrender.com/parking"
 
     const SendToBackEnd = () => {
         //console.log(fdata);
@@ -115,7 +99,7 @@ function Login({ navigation }) {
             <View style={{ width: "90%", }}>
                 <TouchableOpacity 
                     onPress={() => {
-                        testcallApi();
+                        
                     }}
                     style={{ alignItems: "flex-end", marginTop: 10, }}
                 >

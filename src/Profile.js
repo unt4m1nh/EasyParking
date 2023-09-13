@@ -35,22 +35,22 @@ function Profile({ navigation }) {
         email: '',
         plate: '',
         phoneNumber: '',
+        accountBallance: '',
+        payment: '',
     })
 
 
     const [uname, setUname] = useState(null);
     const [id, setUid] = useState(null);
+    const [email, setEmail] = useState(null);
+    const [plate, setPlate] = useState(null);
+    const [phoneNumber, setPhonenumber] = useState(null);
     const [accountBallance, setAccountBallance] = useState(null);
     const [payment, setPayment] = useState(null);
     const [token, setToken] = useState(null);
     const [showUpdate, setShowUpdate] = useState(false);
 
     const [errorMsg, setErrorMsg] = useState(null);
-
-    const testUpdateData = {
-        name: 'Vu Thai Duy',
-        plate: '30K555.55'
-    }
 
     retrieveToken().then((storedToken) => {
         if (storedToken) {
@@ -78,11 +78,33 @@ function Profile({ navigation }) {
                 setUname(result.name);
                 setPayment(result.payment);
                 setAccountBallance(result.accountBallance);
-                //setFdata({ ...fdata, name: uname, email: result.email, plate: result.plate, phoneNumber: result.phoneNumber })
+                //setFdata({ ...fdata, name: result.name, email: result.email, plate: result.plate, phoneNumber: result.phoneNumber
+
             })
             .catch(error => console.log('error', error));
 
     }
+
+    const getUserInfo = () => {
+        var myHeaders = new Headers();
+        console.log(token);
+        myHeaders.append("Authorization", "Bearer " + token);
+        var requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+            redirect: 'follow'
+        };
+
+        fetch("https://ep-app-server.onrender.com/profile", requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                setEmail(result.email);
+                setPlate(result.plate);
+                setPhonenumber(result.phoneNumber);
+            })
+            .catch(error => console.log('error', error));
+    }
+
 
     //console.log(id);
 
@@ -125,7 +147,9 @@ function Profile({ navigation }) {
         }
     }
 
+
     callFromBackEnd();
+    getUserInfo();
 
     return (
         <View style={styles.background}>
@@ -136,11 +160,12 @@ function Profile({ navigation }) {
                 />
                 <View>
                     <Text style={{ color: "#FFF" }}>Xin chào !</Text>
-                    <Text style={{ color: "#FFF", fontSize: RFValue(20) }}>{uname}</Text>
+                    <Text style={{ color: "#FFF", fontSize: RFPercentage(3) }}>{uname}</Text>
                 </View>
                 <TouchableOpacity
                     style={{ position: 'absolute', right: 50 }}
                     onPress={() => {
+                        getUserInfo();
                         setShowUpdate(true);
                     }}
                 >
@@ -180,7 +205,7 @@ function Profile({ navigation }) {
                                 style={styles.input}
                                 //onPressIn={() => setErrorMsg(null)}
                                 onChangeText={(text) => setFdata({ ...fdata, name: text })}
-                                value={fdata.name}
+                                value={uname}
                             />
                         </View>
                         <View style={styles.inputContainer}>
@@ -188,7 +213,7 @@ function Profile({ navigation }) {
                             <TextInput
                                 style={styles.input}
                                 //onPressIn={() => setErrorMsg(null)}
-                                value={fdata.email}
+                                value={email}
                                 onChangeText={(text) => setFdata({ ...fdata, email: text })}
                             />
                         </View>
@@ -197,7 +222,7 @@ function Profile({ navigation }) {
                             <TextInput
                                 style={styles.input}
                                 //onPressIn={() => setErrorMsg(null)}
-                                value={fdata.plate}
+                                value={plate}
                                 onChangeText={(text) => setFdata({ ...fdata, plate: text })}
                                 secureTextEntry={true}
                             />
@@ -208,7 +233,7 @@ function Profile({ navigation }) {
                                 style={styles.input}
                                 //onPressIn={() => setErrorMsg(null)}
                                 onChangeText={(text) => setFdata({ ...fdata, phoneNumber: text })}
-                                value={fdata.phoneNumber}
+                                value={phoneNumber}
                             />
                         </View>
                         {
@@ -225,6 +250,7 @@ function Profile({ navigation }) {
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.updateBtn} onPress={() => {
                             updateUserInfo();
+                            getUserInfo();
                         }}>
                             <Text
                                 style={{ color: "#fff", textTransform: "uppercase", fontWeight: "bold" }}

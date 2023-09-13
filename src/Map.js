@@ -9,12 +9,15 @@ import {
     ScrollView,
 } from 'react-native'
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import MapView, { Polyline, Callout, Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import Icon from 'react-native-vector-icons/FontAwesome'
 import Tts from 'react-native-tts';
 import Geolocation from 'react-native-geolocation-service';
 import data from '../backend/data.json';
 import DatePicker from 'react-native-date-picker'
+
+import DynamicText from './DynamicText';
 
 function MapScreen({ navigation }) {
     // useStaae variables for detecting places coordinates
@@ -41,6 +44,8 @@ function MapScreen({ navigation }) {
         distance: '',
         duration: '',
     })
+    const [slot, setSlot] = useState(null);
+    const [parking, setParking] = useState(null);
 
     // Storing data for places autocomplate function
     const [inputValue, setInputValue] = useState('');
@@ -55,6 +60,7 @@ function MapScreen({ navigation }) {
     const [showDirection, setShowDirection] = useState(false);
     const [show, setShow] = useState(false);
     const [showRoutes, setShowRoutes] = useState(false);
+    const [showParkingStatus, setShowParkingStatus] = useState(false);
 
     const mapViewRef = useRef(null);
 
@@ -64,19 +70,14 @@ function MapScreen({ navigation }) {
     const [outDate, setOutdate] = useState(new Date())
     const [openPicker2, setOpenPicker2] = useState(false)
 
+    const [token, setToken] = useState(null);
+    const [id, setUid] = useState(null);
+
     //Test position
     const testLocation = {
         latitude: 21.016814960367533,
         longitude: 105.81790203356712
     }
-
-    //Test fit coordinates
-    const coordinatesToFocus = [
-        {
-            latitude: 21.016814960367533,
-            longitude: 105.81790203356712
-        }
-    ]
 
     //Fit screen values
     const edgePaddingValue = 70;
@@ -87,27 +88,48 @@ function MapScreen({ navigation }) {
         left: edgePaddingValue,
     }
 
-    const dataR = {
-        'Parking': 'G2_UET_VNU',
-        'User': 'zzkwHTMd',
-        'TimeBooking': '2023-08-20 14:30:00'
-    };
-
-    const testData2 = {
-        'Parking': 'G2_UET_VNU',
-        'User': 'zzkwHTMd',
-        'date': inDate.toLocaleDateString(),
-        'time': inDate.toLocaleTimeString()
-    }
-
-    const testData3 = {
-        'User': 'zzkwHTMd',
-    }
-
     //Functions
     Tts.setDefaultLanguage('vi-VN');
     Tts.setDefaultVoice('vi-VN-language');
-    //Tts.voices().then(voices => console.log(voices));
+
+    const retrieveToken = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('authToken');
+            return authToken;
+        } catch (error) {
+            console.error('Error retrieving token:', error);
+            return null;
+        }
+    };
+
+    retrieveToken().then((storedToken) => {
+        if (storedToken) {
+            // Use the stored token for authentication
+            setToken(storedToken);
+        } else {
+            // Token not available or retrieval failed
+        }
+    });
+
+    const callUserID = () => {
+        var myHeaders = new Headers();
+        console.log(token);
+        myHeaders.append("Authorization", "Bearer " + token);
+        var requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+            redirect: 'follow'
+        };
+
+        fetch("https://ep-app-server.onrender.com/profile", requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                setUid(result.idUser);
+                //setFdata({ ...fdata, name: uname, email: result.email, plate: result.plate, phoneNumber: result.phoneNumber })
+            })
+            .catch(error => console.log('error', error));
+
+    }
 
     const handleInputChange = async (text) => {
         setInputValue(text);
@@ -136,15 +158,29 @@ function MapScreen({ navigation }) {
             .catch(error => console.log('error', error));
     };
 
+    const getCurrentDateTime = () => {
+        var currentdate = new Date();
+        var datetime = currentdate.getDate() + '/' + (currentdate.getMonth() + 1) + '/' + currentdate.getFullYear()
+            + ' ' + currentdate.getHours() + ':' + currentdate.getMinutes() + ':' + currentdate.getSeconds();
+        console.log(datetime);
+        return datetime;
+    }
+
     const requestBooking = () => {
+        var datetime = getCurrentDateTime();
+        var requestBody = {
+            'Parking': pData.nameParking,
+            'User': id,
+            'TimeBooking': datetime
+        }
         var requestOptions = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(dataR)
+            body: JSON.stringify(requestBody)
         };
-        const url = 'http://192.168.43.178:8080/reservation';
+        const url = 'https://server-iot-myjn.onrender.com/app2/reservation';
         fetch(url, requestOptions)
             .then(response => {
                 if (response.ok) {
@@ -156,6 +192,7 @@ function MapScreen({ navigation }) {
             .then(data => {
                 console.log('Yêu cầu thành công:');
                 console.log(data);
+                setSlot(data.reservation);
             })
             .catch(error => {
                 console.error('Lỗi:', error);
@@ -163,14 +200,20 @@ function MapScreen({ navigation }) {
     }
 
     const requestSchedule = () => {
+        var requestBody = {
+            'Parking': pData.nameParking,
+            'User': id,
+            'date': inDate.toLocaleDateString(),
+            'time': inDate.toLocaleTimeString()
+        }
         var requestOptions = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(testData2)
+            body: JSON.stringify(requestBody)
         };
-        const url = 'http://192.168.43.178:8080/booking';
+        const url = 'https://server-iot-myjn.onrender.com/app1/booking';
         fetch(url, requestOptions)
             .then(response => {
                 if (response.ok) {
@@ -189,14 +232,17 @@ function MapScreen({ navigation }) {
     }
 
     const cancelBooking = () => {
+        var requestBody = {
+            'User': id,
+        }
         var requestOptions = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(testData2)
+            body: JSON.stringify(requestBody)
         };
-        const url = 'http://192.168.43.178:8090/cancel';
+        const url = 'https://server-iot-myjn.onrender.com/app3/cancel';
         fetch(url, requestOptions)
             .then(response => {
                 if (response.ok) {
@@ -257,6 +303,7 @@ function MapScreen({ navigation }) {
             .catch(error => console.log(error));
     }
 
+    callUserID();
 
     useEffect(() => {
         const requestLocationPermission = async () => {
@@ -282,7 +329,6 @@ function MapScreen({ navigation }) {
                 console.log(position);
                 setCurrentLatitude(position.coords.latitude);
                 setCurrentLongtitude(position.coords.longitude);
-                setShowDirection(false);
             },
             (error) => {
                 // See error code charts below.
@@ -306,7 +352,6 @@ function MapScreen({ navigation }) {
 
     callFromBackEnd();
     getLocation();
-
     return (
         <View style={{ marginTop: 0, flex: 1 }}>
             <MapView
@@ -323,8 +368,8 @@ function MapScreen({ navigation }) {
                 <Marker
                     title='Bạn đang ở đây'
                     pinColor='white'
-                    //coordinate={{ latitude: currentLatitude, longitude: currentLongtitude }}
-                    coordinate={{ latitude: testLocation.latitude, longitude: testLocation.longitude }}
+                    coordinate={{ latitude: currentLatitude, longitude: currentLongtitude }}
+                    //coordinate={{ latitude: testLocation.latitude, longitude: testLocation.longitude }}
                     image={require('./img/my-location.png')}
                 ></Marker>
                 <Circle
@@ -359,7 +404,7 @@ function MapScreen({ navigation }) {
                                 ...pData,
                                 nameParking: item.nameParking,
                                 price: item.price,
-                                slotLeft: item.emptySlot
+                                slotLeft: item.Value_empty_slot
                             });
                         }}
                     >
@@ -437,9 +482,11 @@ function MapScreen({ navigation }) {
             {show && (
                 <View style={styles.marker_callout}>
                     <View style={{ display: 'flex', flexDirection: 'row' }}>
-                        <Text style={{ color: "#000", fontSize: 25 }}>{pData.nameParking}</Text>
+                        <DynamicText
+                            text={pData.nameParking}
+                        />
                         <TouchableOpacity
-                            style={{ position: 'absolute', right: 10 }}
+                            style={{ position: 'absolute', right: 5 }}
                             onPress={() => {
                                 setShow(false);
                             }}
@@ -453,8 +500,6 @@ function MapScreen({ navigation }) {
                     <TouchableOpacity
                         style={styles.bookingBtn}
                         onPress={() => {
-                            //setShowDirection(true);
-                            //getRouteFromApi();
                             setBooking(true);
                             setShow(false);
                         }}
@@ -474,17 +519,19 @@ function MapScreen({ navigation }) {
                                 }}>
                                     <Icon name="long-arrow-left" size={25} color="#2957C2" />
                                 </TouchableOpacity>
-                                <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', marginTop: 24 }}>Hoàn thiện yêu cầu đặt chỗ</Text>
-                                <Text style={{ fontSize: 16, color: '#000', marginTop: 12 }}>Biển số xe của bạn là gì</Text>
-                                <TextInput
-                                    style={styles.plateInput}
-                                    placeholder='30A123.45'
-                                ></TextInput>
+                                <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', marginTop: 24 }}>Hoàn thiện yêu cầu đặt chỗ tại</Text>
+                                <Text style={{ fontSize: 18, color: '#000', marginTop: 8 }}>{pData.nameParking}</Text>
                                 <TouchableOpacity
                                     style={styles.bookingBtn}
                                     onPress={() => {
-                                        requestBooking();
-                                        setUserStatus(true);
+                                        if (!parking) {
+                                            getCurrentDateTime();
+                                            setParking(pData.nameParking);
+                                            requestBooking();
+                                            setUserStatus(true);
+                                        } else {
+                                            alert('Bạn đang gửi xe nên không thể đặt chỗ')
+                                        }
                                     }}
                                 >
                                     <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Đặt ngay</Text>
@@ -492,14 +539,14 @@ function MapScreen({ navigation }) {
                                 <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', marginTop: 24 }}>Đặt trước</Text>
                                 <Text style={{ fontSize: 16, color: '#000', marginTop: 12 }}>Bạn sẽ đỗ xe trong bao lâu</Text>
                                 <View style={styles.scheduleBooking}>
-                                    <Text style={{color: '#000'}}>Từ</Text>
-                                    <Text style={{fontWeight: 'bold', fontSize: 20}}>{inDate.toLocaleString()}</Text>
+                                    <Text style={{ color: '#000' }}>Từ</Text>
+                                    <Text style={{ fontWeight: 'bold', fontSize: 20 }}>{inDate.toLocaleString()}</Text>
                                     <TouchableOpacity
                                         onPress={() => {
                                             setOpenPicker1(true);
                                         }}
                                     >
-                                        <Text style={{color: '#2957c2', fontWeight: 'bold'}} >Chọn</Text>
+                                        <Text style={{ color: '#2957c2', fontWeight: 'bold' }} >Chọn</Text>
                                     </TouchableOpacity>
                                     <DatePicker
                                         modal
@@ -516,14 +563,14 @@ function MapScreen({ navigation }) {
                                     />
                                 </View>
                                 <View style={styles.scheduleBooking}>
-                                    <Text style={{color: '#000'}}>Đến</Text>
-                                    <Text style={{fontWeight: 'bold', fontSize: 20}}>{outDate.toLocaleString()}</Text>
+                                    <Text style={{ color: '#000' }}>Đến</Text>
+                                    <Text style={{ fontWeight: 'bold', fontSize: 20 }}>{outDate.toLocaleString()}</Text>
                                     <TouchableOpacity
                                         onPress={() => {
                                             setOpenPicker2(true);
                                         }}
                                     >
-                                        <Text style={{color: '#2957c2', fontWeight: 'bold'}}>Chọn</Text>
+                                        <Text style={{ color: '#2957c2', fontWeight: 'bold' }}>Chọn</Text>
                                     </TouchableOpacity>
                                     <DatePicker
                                         modal
@@ -541,6 +588,7 @@ function MapScreen({ navigation }) {
                                 </View>
                                 <TouchableOpacity
                                     onPress={() => {
+                                        setUserStatus(true);
                                         requestSchedule();
                                     }}
                                     style={styles.bookingBtn}
@@ -551,13 +599,15 @@ function MapScreen({ navigation }) {
                         ) : (
                             <View style={{ alignItems: 'center', padding: 30 }}>
                                 <Icon name="check-circle" size={50} color='green' />
-                                <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', margin: 24 }}>Đặt chỗ thành công</Text>
+                                <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', marginTop: 24 }}>Đặt chỗ thành công</Text>
+                                <Text style={{ fontSize: 16, color: '#000', }}>Vị trí đỗ xe của bạn là ô {slot}</Text>
                                 <TouchableOpacity
                                     style={styles.bookingBtn}
                                     onPress={() => {
                                         cancelBooking();
                                         setBooking(false);
                                         setUserStatus(false);
+                                        setParking(null);
                                     }}
                                 >
                                     <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Hủy đặt chỗ</Text>
@@ -565,11 +615,12 @@ function MapScreen({ navigation }) {
                                 <TouchableOpacity
                                     style={styles.bookingBtn}
                                     onPress={() => {
-                                        setShowDirection(true);
                                         getRouteFromApi();
                                         setBooking(false);
                                         setUserStatus(false);
+                                        setShowDirection(true);
                                         setShowRoutes(true);
+                                        setShowParkingStatus(true);
                                         mapViewRef.current?.fitToCoordinates([{ latitude: testLocation.latitude, longitude: testLocation.longitude }, { latitude: desLat, longitude: desLng },], {
                                             edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
                                             animated: true,
@@ -581,6 +632,25 @@ function MapScreen({ navigation }) {
                             </View>
 
                         )}
+                    </View>
+                )
+            }
+            {
+                showParkingStatus && (
+                    <View style={styles.bookingStatusContainer}>
+                        <Text style={{ fontSize: 16, color: '#000' }}>Bạn đang đặt chỗ ở {parking} </Text>
+                        <Text style={{ fontSize: 16, color: '#000' }}>Vị trí đỗ: Ô {slot}</Text>
+                        <TouchableOpacity
+                            onPress={() => {
+                                cancelBooking();
+                                setBooking(false);
+                                setUserStatus(false);
+                                setShowParkingStatus(false);
+                                setParking(null);
+                            }}
+                        >
+                            <Text style={{ color: '#2957C2', fontWeight: 'bold' }}>Hủy</Text>
+                        </TouchableOpacity>
                     </View>
                 )
             }
@@ -731,14 +801,6 @@ const styles = StyleSheet.create({
         padding: 10,
         color: '#000'
     },
-    plateInput: {
-        width: '90%',
-        padding: 10,
-        borderColor: '#000',
-        borderWidth: 1,
-        marginTop: 8,
-        marginBottom: 24
-    },
     scheduleBooking: {
         display: 'flex',
         flexDirection: 'row',
@@ -756,6 +818,18 @@ const styles = StyleSheet.create({
         borderColor: '#000',
         borderWidth: 1,
         top: 20,
+        left: 20,
+        display: 'flex',
+        padding: 10
+    },
+    bookingStatusContainer: {
+        position: 'absolute',
+        backgroundColor: '#fff',
+        width: 'auto',
+        height: 'auto',
+        borderColor: '#000',
+        borderWidth: 1,
+        top: 80,
         left: 20,
         display: 'flex',
         padding: 10
