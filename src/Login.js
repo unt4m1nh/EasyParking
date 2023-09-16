@@ -113,7 +113,7 @@ function Login({ navigation }) {;
                 </TouchableOpacity>
             </View>
             {
-                errorMsg ? <Text style={{ color: "red", fontSize: 15, marginTop: 50 }}>{errorMsg}</Text> : null
+                errorMsg ? <Text style={styles.error}>{errorMsg}</Text> : null
             }
             <TouchableOpacity style={styles.signInBtn} onPress={() => SendToBackEnd()}>
                 <Text
@@ -149,6 +149,9 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 14,
         color: 'black',
+    },
+    error: {
+        color: "red", fontSize: 15, marginTop: 50
     },
     input: {
         width: "100%",

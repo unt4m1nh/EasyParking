@@ -398,8 +398,7 @@ function MapScreen({ navigation }) {
                             setDesLat(item.latitude);
                             setDesLng(item.longitude);
                             setShow(true);
-                            console.log(posLat);
-                            console.log(posLng);
+                            setSlot(null);
                             setPdata({
                                 ...pData,
                                 nameParking: item.nameParking,
@@ -504,7 +503,7 @@ function MapScreen({ navigation }) {
                             setShow(false);
                         }}
                     >
-                        <Text style={{ color: "#fff", fontSize: 18, textTransform: 'uppercase' }}>Lựa chọn</Text>
+                        <Text style={styles.text1}>Lựa chọn</Text>
                     </TouchableOpacity>
                 </View>
             )

@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 import { AuthContext } from '../component/context';
 
 import { RFPercentage, RFValue } from "react-native-responsive-fontsize";
+import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 
 function Profile({ navigation }) {
 
@@ -180,18 +181,14 @@ function Profile({ navigation }) {
                 </View>
 
             </View>
-            {/*    <TouchableOpacity style={styles.addCashBtn}>
-                <Text
-                    style={{ color: "#000", textTransform: "uppercase", fontSize: 18 }}
-                >
-                    Nạp tiền</Text>
-            </TouchableOpacity> */}
+           
             <TouchableOpacity style={styles.signOutBtn} onPress={() => {
                 signOut();
                 deleteToken(token);
             }}>
                 <Text
-                    style={{ color: "#fff", textTransform: "uppercase", fontSize: RFValue(18) }}
+                    //Test fontsize using flexible dimension
+                    style={{ color: "#fff", textTransform: "uppercase", fontSize: wp(4)  }}
                 >
                     Đăng xuất</Text>
             </TouchableOpacity>
@@ -339,7 +336,7 @@ const styles = StyleSheet.create({
     header: {
         marginTop: 33,
         color: "#2957C2",
-        fontSize: RFValue(22),
+        fontSize: 22,
         fontWeight: "bold"
     },
     text: {
