@@ -24,7 +24,10 @@ function QrScreen({ navigation }) {
 
     const [qrData, setQRData] = useState('');
     const [showQR, setShowQR] = useState(false);
+
     const [userStatus, setUserStatus] = useState(false);
+    const [id, setUid] = useState(null);
+
     const [generated, setGenerated] = useState(false);
     const [token, setToken] = useState(null);
     const [message, setMessage] = useState('Bấm nút để tạo mã QR')
@@ -39,6 +42,26 @@ function QrScreen({ navigation }) {
             // Token not available or retrieval failed
         }
     });
+
+    const callUserID = () => {
+        var myHeaders = new Headers();
+        console.log(token);
+        myHeaders.append("Authorization", "Bearer " + token);
+        var requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+            redirect: 'follow'
+        };
+
+        fetch("https://ep-app-server.onrender.com/profile", requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                setUid(result.idUser);
+                //setFdata({ ...fdata, name: uname, email: result.email, plate: result.plate, phoneNumber: result.phoneNumber })
+            })
+            .catch(error => console.log('error', error));
+
+    }
 
     const getUserStatus = () => {
         var myHeaders = new Headers();
@@ -89,6 +112,7 @@ function QrScreen({ navigation }) {
     }, [generated]); 
 
     function generateRandomString(length) {
+        callUserID();
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result = '';
 
@@ -96,8 +120,8 @@ function QrScreen({ navigation }) {
             const randomIndex = Math.floor(Math.random() * characters.length);
             result += characters.charAt(randomIndex);
         }
-
-        return result;
+        
+        return id + result;
     }
 
     const generateQRCode = () => {

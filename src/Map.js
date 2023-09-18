@@ -265,7 +265,7 @@ function MapScreen({ navigation }) {
             method: 'GET',
         };
         const apiKey = 'ae0534df26a0484f9977c8dbadfc05e5';
-        const url = `https://api.geoapify.com/v1/routing?waypoints=${testLocation.latitude},${testLocation.longitude}|${desLat},${desLng}&mode=drive&apiKey=ae0534df26a0484f9977c8dbadfc05e5`;
+        const url = `https://api.geoapify.com/v1/routing?waypoints=${currentLatitude},${currentLongtitude}|${desLat},${desLng}&mode=drive&apiKey=ae0534df26a0484f9977c8dbadfc05e5`;
         fetch(url, requestOptions)
             .then(response => response.json())
             .then(result => {
@@ -369,11 +369,10 @@ function MapScreen({ navigation }) {
                     title='Bạn đang ở đây'
                     pinColor='white'
                     coordinate={{ latitude: currentLatitude, longitude: currentLongtitude }}
-                    //coordinate={{ latitude: testLocation.latitude, longitude: testLocation.longitude }}
                     image={require('./img/my-location.png')}
                 ></Marker>
                 <Circle
-                    center={{ latitude: testLocation.latitude, longitude: testLocation.longitude }}
+                    center={{ latitude: currentLatitude, longitude: currentLongtitude }}
                     radius={1000}
                     strokeColor='#7eb6ff'
                     strokeWidth={2}
@@ -430,7 +429,7 @@ function MapScreen({ navigation }) {
                         value={inputValue}
                         onChangeText={handleInputChange}
                         onPressIn={() => { setShowPredictions(true) }}
-                        style={{ padding: 10, fontSize: 16, width: '90%' }}
+                        style={{ padding: 10, fontSize: 14, width: '90%' }}
                     />
                     <Icon name="search" size={20} color="#2957C2" />
                 </View>
@@ -457,7 +456,7 @@ function MapScreen({ navigation }) {
                                 onPress={() => { setShowPredictions(false) }}
                                 style={{ padding: 10, alignItems: 'flex-end' }}
                             >
-                                <Text style={{ color: '#2957C2', fontWeight: 'bold' }}>Đóng</Text>
+                                <Text style={{ color: '#2957C2'}}>Đóng</Text>
                             </TouchableOpacity>
                         </ScrollView>
                     )
@@ -493,9 +492,9 @@ function MapScreen({ navigation }) {
                             <Icon name="close" size={25} color="#2957C2" />
                         </TouchableOpacity>
                     </View>
-                    <Text style={{ color: "#000", fontSize: 13 }} >Đang hoạt động</Text>
-                    <Text style={{ color: "#000", fontSize: 15, marginTop: 10 }}>{pData.price}VNĐ / 1 giờ</Text>
-                    <Text style={{ color: "#000", fontSize: 15 }}>{pData.slotLeft} chỗ trống</Text>
+                    <Text style={{ color: "#000", fontSize: 11 }} >Đang hoạt động</Text>
+                    <Text style={{ color: "#000", fontSize: 13, marginTop: 10 }}>{pData.price}VNĐ / 1 giờ</Text>
+                    <Text style={{ color: "#000", fontSize: 13 }}>{pData.slotLeft} chỗ trống</Text>
                     <TouchableOpacity
                         style={styles.bookingBtn}
                         onPress={() => {
@@ -518,8 +517,8 @@ function MapScreen({ navigation }) {
                                 }}>
                                     <Icon name="long-arrow-left" size={25} color="#2957C2" />
                                 </TouchableOpacity>
-                                <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', marginTop: 24 }}>Hoàn thiện yêu cầu đặt chỗ tại</Text>
-                                <Text style={{ fontSize: 18, color: '#000', marginTop: 8 }}>{pData.nameParking}</Text>
+                                <Text style={{ fontSize: 14, color: '#000', marginTop: 24 }}>Hoàn thiện yêu cầu đặt chỗ tại</Text>
+                                <Text style={{ fontSize: 16, color: '#000', marginTop: 8 }}>{pData.nameParking}</Text>
                                 <TouchableOpacity
                                     style={styles.bookingBtn}
                                     onPress={() => {
@@ -535,17 +534,17 @@ function MapScreen({ navigation }) {
                                 >
                                     <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Đặt ngay</Text>
                                 </TouchableOpacity>
-                                <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', marginTop: 24 }}>Đặt trước</Text>
-                                <Text style={{ fontSize: 16, color: '#000', marginTop: 12 }}>Bạn sẽ đỗ xe trong bao lâu</Text>
+                                <Text style={{ fontSize: 14, color: '#000', marginTop: 24 }}>Đặt trước</Text>
+                                <Text style={{ fontSize: 14, color: '#000', marginTop: 12 }}>Bạn sẽ đỗ xe trong bao lâu</Text>
                                 <View style={styles.scheduleBooking}>
                                     <Text style={{ color: '#000' }}>Từ</Text>
-                                    <Text style={{ fontWeight: 'bold', fontSize: 20 }}>{inDate.toLocaleString()}</Text>
+                                    <Text style={{fontSize: 18 }}>{inDate.toLocaleString()}</Text>
                                     <TouchableOpacity
                                         onPress={() => {
                                             setOpenPicker1(true);
                                         }}
                                     >
-                                        <Text style={{ color: '#2957c2', fontWeight: 'bold' }} >Chọn</Text>
+                                        <Text style={{ color: '#2957c2'}} >Chọn</Text>
                                     </TouchableOpacity>
                                     <DatePicker
                                         modal
@@ -563,13 +562,13 @@ function MapScreen({ navigation }) {
                                 </View>
                                 <View style={styles.scheduleBooking}>
                                     <Text style={{ color: '#000' }}>Đến</Text>
-                                    <Text style={{ fontWeight: 'bold', fontSize: 20 }}>{outDate.toLocaleString()}</Text>
+                                    <Text style={{fontSize: 18 }}>{outDate.toLocaleString()}</Text>
                                     <TouchableOpacity
                                         onPress={() => {
                                             setOpenPicker2(true);
                                         }}
                                     >
-                                        <Text style={{ color: '#2957c2', fontWeight: 'bold' }}>Chọn</Text>
+                                        <Text style={{ color: '#2957c2'}}>Chọn</Text>
                                     </TouchableOpacity>
                                     <DatePicker
                                         modal
@@ -598,8 +597,8 @@ function MapScreen({ navigation }) {
                         ) : (
                             <View style={{ alignItems: 'center', padding: 30 }}>
                                 <Icon name="check-circle" size={50} color='green' />
-                                <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold', marginTop: 24 }}>Đặt chỗ thành công</Text>
-                                <Text style={{ fontSize: 16, color: '#000', }}>Vị trí đỗ xe của bạn là ô {slot}</Text>
+                                <Text style={{ fontSize: 14, color: '#000', marginTop: 24 }}>Đặt chỗ thành công</Text>
+                                <Text style={{ fontSize: 14, color: '#000', }}>Vị trí đỗ xe của bạn là ô {slot}</Text>
                                 <TouchableOpacity
                                     style={styles.bookingBtn}
                                     onPress={() => {
@@ -637,8 +636,8 @@ function MapScreen({ navigation }) {
             {
                 showParkingStatus && (
                     <View style={styles.bookingStatusContainer}>
-                        <Text style={{ fontSize: 16, color: '#000' }}>Bạn đang đặt chỗ ở {parking} </Text>
-                        <Text style={{ fontSize: 16, color: '#000' }}>Vị trí đỗ: Ô {slot}</Text>
+                        <Text style={{ fontSize: 14, color: '#000' }}>Bạn đang đặt chỗ ở {parking} </Text>
+                        <Text style={{ fontSize: 14, color: '#000' }}>Vị trí đỗ: Ô {slot}</Text>
                         <TouchableOpacity
                             onPress={() => {
                                 cancelBooking();
@@ -648,7 +647,7 @@ function MapScreen({ navigation }) {
                                 setParking(null);
                             }}
                         >
-                            <Text style={{ color: '#2957C2', fontWeight: 'bold' }}>Hủy</Text>
+                            <Text style={{ color: '#2957C2' }}>Hủy</Text>
                         </TouchableOpacity>
                     </View>
                 )
@@ -657,7 +656,7 @@ function MapScreen({ navigation }) {
                 showRoutes && (
                     <View style={styles.navigationContainer}>
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' }}>
-                            <Text style={{ fontSize: 16, color: '#000', fontWeight: 'bold' }}>Đang điều hướng đến vị trí ...</Text>
+                            <Text style={{ fontSize: 14, color: '#000'}}>Đang điều hướng đến vị trí ...</Text>
                             <TouchableOpacity
                                 style={{ position: 'absolute', right: 10 }}
                                 onPress={() => {
@@ -676,7 +675,7 @@ function MapScreen({ navigation }) {
                             <Text>{duration} phút</Text>
                         </View>
                         <View style={{ height: 70, alignItems: 'center', justifyContent: 'center' }}>
-                            <Text style={{ color: '#000', fontSize: 16 }}>{instructionsArray[currentIndex]}</Text>
+                            <Text style={{ color: '#000', fontSize: 14 }}>{instructionsArray[currentIndex]}</Text>
                         </View>
                         <View style={{ display: 'flex', flexDirection: 'row' }}>
                             <TouchableOpacity
@@ -685,7 +684,7 @@ function MapScreen({ navigation }) {
                                 }}
                                 style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}
                             >
-                                <Text style={{ color: '#2957C2', fontWeight: 'bold' }}>Trở lại</Text>
+                                <Text style={{ color: '#2957C2'}}>Trở lại</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => {
@@ -703,7 +702,7 @@ function MapScreen({ navigation }) {
                                 }}
                                 style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}
                             >
-                                <Text style={{ color: '#2957C2', fontWeight: 'bold' }}>Tiếp theo</Text>
+                                <Text style={{ color: '#2957C2'}}>Tiếp theo</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -780,7 +779,7 @@ const styles = StyleSheet.create({
     },
     text1: {
         color: 'white',
-        fontSize: 20,
+        fontSize: 18,
     },
     marker_callout: {
         backgroundColor: '#fff',
@@ -824,7 +823,7 @@ const styles = StyleSheet.create({
     bookingStatusContainer: {
         position: 'absolute',
         backgroundColor: '#fff',
-        width: 'auto',
+        width: '90%',
         height: 'auto',
         borderColor: '#000',
         borderWidth: 1,

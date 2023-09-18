@@ -79,8 +79,6 @@ function Profile({ navigation }) {
                 setUname(result.name);
                 setPayment(result.payment);
                 setAccountBallance(result.accountBallance);
-                //setFdata({ ...fdata, name: result.name, email: result.email, plate: result.plate, phoneNumber: result.phoneNumber
-
             })
             .catch(error => console.log('error', error));
 
@@ -161,7 +159,7 @@ function Profile({ navigation }) {
                 />
                 <View>
                     <Text style={{ color: "#FFF" }}>Xin chào !</Text>
-                    <Text style={{ color: "#FFF", fontSize: RFPercentage(3) }}>{uname}</Text>
+                    <Text style={{ color: "#FFF", fontSize: 18 }}>{uname}</Text>
                 </View>
                 <TouchableOpacity
                     style={{ position: 'absolute', right: 50 }}
@@ -174,9 +172,9 @@ function Profile({ navigation }) {
                 </TouchableOpacity>
             </View>
             <View style={styles.ballanceContainer}>
-                <Text style={{ fontSize: RFValue(18), color: '#000' }}> Số dư ví tiền của bạn</Text>
+                <Text style={{ fontSize: RFValue(16), color: '#000' }}> Số dư ví tiền của bạn</Text>
                 <View style={{ display: 'flex', flexDirection: 'row', height: 'auto', alignItems: 'center' }}>
-                    <Text style={{ fontSize: RFValue(40), color: '#000', marginTop: 8 }}>{accountBallance}</Text>
+                    <Text style={{ fontSize: RFValue(36), color: '#000', marginTop: 8 }}>{accountBallance}</Text>
 
                 </View>
 
@@ -188,7 +186,7 @@ function Profile({ navigation }) {
             }}>
                 <Text
                     //Test fontsize using flexible dimension
-                    style={{ color: "#fff", textTransform: "uppercase", fontSize: wp(4)  }}
+                    style={{ color: "#fff", textTransform: "uppercase", fontSize: 16  }}
                 >
                     Đăng xuất</Text>
             </TouchableOpacity>
@@ -200,17 +198,15 @@ function Profile({ navigation }) {
                             <Text style={styles.text}>Họ và tên</Text>
                             <TextInput
                                 style={styles.input}
-                                //onPressIn={() => setErrorMsg(null)}
+                                defaultValue={uname}
                                 onChangeText={(text) => setFdata({ ...fdata, name: text })}
-                                value={uname}
                             />
                         </View>
                         <View style={styles.inputContainer}>
                             <Text style={styles.text}>Email</Text>
                             <TextInput
                                 style={styles.input}
-                                //onPressIn={() => setErrorMsg(null)}
-                                value={email}
+                                defaultValue={email}
                                 onChangeText={(text) => setFdata({ ...fdata, email: text })}
                             />
                         </View>
@@ -218,23 +214,20 @@ function Profile({ navigation }) {
                             <Text style={styles.text}>Biển số xe</Text>
                             <TextInput
                                 style={styles.input}
-                                //onPressIn={() => setErrorMsg(null)}
-                                value={plate}
+                                defaultValue={plate}
                                 onChangeText={(text) => setFdata({ ...fdata, plate: text })}
-                                secureTextEntry={true}
                             />
                         </View>
                         <View style={styles.inputContainer}>
                             <Text style={styles.text}>Số điện thoại</Text>
                             <TextInput
                                 style={styles.input}
-                                //onPressIn={() => setErrorMsg(null)}
+                                defaultValue={phoneNumber}
                                 onChangeText={(text) => setFdata({ ...fdata, phoneNumber: text })}
-                                value={phoneNumber}
                             />
                         </View>
                         {
-                            errorMsg ? <Text style={{ color: "red", fontSize: RFValue(15), marginTop: 50 }}>{errorMsg}</Text> : null
+                            errorMsg ? <Text style={{ color: "red", fontSize: RFValue(13), marginTop: 50 }}>{errorMsg}</Text> : null
                         }
                         <TouchableOpacity style={styles.cancelBtn} onPress={() => {
                             setShowUpdate(false)

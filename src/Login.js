@@ -52,12 +52,7 @@ function Login({ navigation }) {;
                 body: JSON.stringify(fdata),
                 redirect: 'follow'
             })
-                .then(res => {
-                    if (!res.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return res.json();
-                }).then(
+                .then(res => res.json()).then(
                     data => {
                         if (data.error) {
                             setErrorMsg(data.error);
@@ -93,6 +88,7 @@ function Login({ navigation }) {;
                     style={styles.input}
                     placeholder='Mật khẩu'
                     onChangeText={(text) => setFdata({ ...fdata, password: text })}
+                    secureTextEntry={true}
                     onPressIn={() => setErrorMsg(null)}
                 />
             </View>
@@ -138,7 +134,7 @@ const styles = StyleSheet.create({
     header: {
         marginTop: 33,
         color: "#2957C2",
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: "bold"
     },
     inputContainer: {
@@ -147,11 +143,11 @@ const styles = StyleSheet.create({
         padding: 18,
     },
     text: {
-        fontSize: 14,
+        fontSize: 12,
         color: 'black',
     },
     error: {
-        color: "red", fontSize: 15, marginTop: 50
+        color: "red", fontSize: 13, marginTop: 50
     },
     input: {
         width: "100%",

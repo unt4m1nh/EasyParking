@@ -6,11 +6,11 @@ const DynamicText = ({ text }) => {
   const getFontSize = () => {
     const textLength = text.trim().length;
     if (textLength < 20) {
-      return 24;
+      return 22;
     } else if (textLength < 30) {
-      return 20;
+      return 18;
     } else {
-      return 15;
+      return 13;
     }
   };
 
