@@ -73,12 +73,6 @@ function MapScreen({ navigation }) {
     const [token, setToken] = useState(null);
     const [id, setUid] = useState(null);
 
-    //Test position
-    const testLocation = {
-        latitude: 21.016814960367533,
-        longitude: 105.81790203356712
-    }
-
     //Fit screen values
     const edgePaddingValue = 70;
     const edgePadding = {
@@ -619,7 +613,7 @@ function MapScreen({ navigation }) {
                                         setShowDirection(true);
                                         setShowRoutes(true);
                                         setShowParkingStatus(true);
-                                        mapViewRef.current?.fitToCoordinates([{ latitude: testLocation.latitude, longitude: testLocation.longitude }, { latitude: desLat, longitude: desLng },], {
+                                        mapViewRef.current?.fitToCoordinates([{ latitude: currentLatitude, longitude: currentLongtitude }, { latitude: desLat, longitude: desLng },], {
                                             edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
                                             animated: true,
                                         });
