@@ -350,11 +350,11 @@ function MapScreen({ navigation }) {
         <View style={{ marginTop: 0, flex: 1 }}>
             <MapView
                 ref={mapViewRef}
-                provider={PROVIDER_GOOGLE} // remove if not using Google Mapsa
+                provider={PROVIDER_GOOGLE} // remove if not using Google Maps
                 style={styles.map}
                 region={{
-                    latitude: 21.018072,
-                    longitude: 105.829949,
+                    latitude: 21.10748167422885,
+                    longitude: 105.96041236763716,
                     latitudeDelta: 0.02,
                     longitudeDelta: 0.02,
                 }}

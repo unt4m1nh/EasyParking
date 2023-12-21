@@ -38,7 +38,7 @@ function QrScreen({ navigation }) {
             // Use the stored token for authentication
             setToken(storedToken);
         } else {
-            console.log('Hazel');
+            console.log('Retrieval failed');
             // Token not available or retrieval failed
         }
     });
@@ -126,12 +126,12 @@ function QrScreen({ navigation }) {
 
     const generateQRCode = () => {
         const data = generateRandomString(10);
-        console.log(data);
-        setQRData(data);
+        const qrCode = 'ndd12345' + data
+        setQRData(qrCode);
         setShowQR(true);
         setMessage('Đây là mã QR của bạn');
         setGenerated(true);
-    }
+    }   
 
     console.log(userStatus);
 
