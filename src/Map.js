@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     PermissionsAndroid,
     ScrollView,
+    Image,
 } from 'react-native'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -184,6 +185,7 @@ function MapScreen({ navigation }) {
                 }
             })
             .then(data => {
+                console.log(datetime);
                 console.log('Yêu cầu thành công:');
                 console.log(data);
                 setSlot(data.reservation);
@@ -291,7 +293,7 @@ function MapScreen({ navigation }) {
             redirect: 'follow'
         };
 
-        fetch("http://10.0.3.2:3000/parking", requestOptions)
+        fetch("https://ep-app-server.onrender.com/parking", requestOptions)
             .then(response => response.text())
             .then(result => console.log(result))
             .catch(error => console.log(error));
@@ -343,9 +345,12 @@ function MapScreen({ navigation }) {
         }, 1000);
         setChosen(false);
     }
+    
+    useEffect(() => {
+        callFromBackEnd();
+        getLocation();
+    }, []);
 
-    callFromBackEnd();
-    getLocation();
     return (
         <View style={{ marginTop: 0, flex: 1 }}>
             <MapView
@@ -386,7 +391,6 @@ function MapScreen({ navigation }) {
                         key={index}
                         title={item.nameParking}
                         coordinate={{ latitude: item.latitude, longitude: item.longitude }}
-                        image={require('./img/pin.png')}
                         onPress={() => {
                             setDesLat(item.latitude);
                             setDesLng(item.longitude);
@@ -400,9 +404,11 @@ function MapScreen({ navigation }) {
                             });
                         }}
                     >
-                        <Callout>
-                            <Text>{item.nameParking}</Text>
-                        </Callout>
+                        <Image
+                            source={require('./img/pin.png')}
+                            style={{width: 20, height: 30}}
+                            resizeMode="contain"
+                        />
                     </Marker>
                 ))}
                 {showDirection && (

@@ -1,6 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const authRoutes = require("./routes/authRoutes.js");
+const sendMail = require("./routes/sendVerificationEmail.js");
+const resetPassword = require("./routes/resetPassword.js");
 const requireToken = require("./Middlewares/AuthTokenRequired.js");
 const Parking = require('./models/Parking.js')
 require("./db.js");
@@ -20,6 +22,8 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(authRoutes);
+app.use(sendMail);
+app.use(resetPassword);
 
 app.get('/', requireToken, (req, res) => {
   console.log(req.user);
@@ -50,6 +54,7 @@ app.get('/parking', async (req, res) => {
 //Update user info
 app.patch('/update/:id',  async (req, res) => {
   const {name, email, plate, phoneNumber} = req.body;
+  console.log(name, email, plate, phoneNumber)
   if (!name || !email || !plate || !phoneNumber) {
     return res.status(442).send({error: "Vui lòng nhập đủ thông tin"});
   }
@@ -77,3 +82,25 @@ app.patch('/add_cash/:id',  async (req, res) => {
     res.status(500).json({ error: 'Có lỗi xảy ra trong quá trình cập nhật thông tin người dùng' });
   }
 });
+
+// Add Slots for all records in Parking schema
+app.patch('/add_slots_props', async (req, res) => {
+  try {
+    const parkingList = await Parking.find();
+    console.log(parkingList);
+    for (let i = 0; i < parkingList.length; i++) {
+      const slots = [];
+      for (let j = 0; j < parkingList[i].maxSlot; j++) {
+        slots.push({
+          "slot": `${j + 1}`,
+          "status": 0
+        })
+      }
+      console.log(parkingList[i].nameParking);
+      await Parking.updateOne({nameParking: parkingList[i].nameParking}, {$set:{ SlotStatus: slots}});
+    }
+    res.status(500).json({success: true, message: "Thêm trường Slots thành công"});
+  } catch (err) {
+    res.status(422).json({error: 'Lỗi hệ thống bãi xe: ' + err})
+  }
+})

@@ -19,14 +19,11 @@ const parkingSchema = new mongoose.Schema({
     maxSlot: {
         type: Number,
     },
-    Value_emty_slot: {
+    emptySlot: {
         type: String,
     },
-    emptySlot: {
-        type: String
-    },
-    newArrayField: {
-        type: Array
+    SlotStatus: {
+        type: Array,
     }
 }, {collection: 'parking'})
 

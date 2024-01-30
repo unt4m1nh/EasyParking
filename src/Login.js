@@ -5,7 +5,8 @@ import {
     Button,
     TextInput,
     Touchable,
-    TouchableOpacity
+    TouchableOpacity,
+    useColorScheme
 } from 'react-native'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,7 +15,8 @@ import { AuthContext } from '../component/context';
 
 
 
-function Login({ navigation }) {;
+function Login({ navigation }) {
+    const theme = useColorScheme()
 
     const { signIn } = React.useContext(AuthContext);
 
@@ -78,6 +80,7 @@ function Login({ navigation }) {;
                 <TextInput
                     style={styles.input}
                     placeholder='Email'
+                    placeholderTextColor={theme === 'dark' ? '#999' : '#999'}
                     onChangeText={(text) => setFdata({ ...fdata, email: text })}
                     onPressIn={() => setErrorMsg(null)}
                 />
@@ -87,6 +90,7 @@ function Login({ navigation }) {;
                 <TextInput
                     style={styles.input}
                     placeholder='Mật khẩu'
+                    placeholderTextColor={theme === 'dark' ? '#999' : '#999'}
                     onChangeText={(text) => setFdata({ ...fdata, password: text })}
                     secureTextEntry={true}
                     onPressIn={() => setErrorMsg(null)}
@@ -129,7 +133,6 @@ const styles = StyleSheet.create({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-
     },
     header: {
         marginTop: 33,

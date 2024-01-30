@@ -45,6 +45,14 @@ const userSchema = new mongoose.Schema({
     accountBallance: {
         type: Number,
         default: 0
+    },
+    resetToken: {
+        type: String,
+        default: ""
+    },
+    resetTokenExpiredDate: {
+        type: Date, 
+        default: ""
     }
 });
 

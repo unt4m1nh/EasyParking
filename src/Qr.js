@@ -4,7 +4,8 @@ import {
     StyleSheet,
     Button,
     TextInput,
-    TouchableOpacity
+    TouchableOpacity,
+    useColorScheme
 } from 'react-native'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,6 +13,9 @@ import QRCode from 'react-native-qrcode-svg';
 
 
 function QrScreen({ navigation }) {
+
+    const theme = useColorScheme()
+
     const retrieveToken = async () => {
         try {
             const authToken = await AsyncStorage.getItem('authToken');
@@ -45,7 +49,6 @@ function QrScreen({ navigation }) {
 
     const callUserID = () => {
         var myHeaders = new Headers();
-        console.log(token);
         myHeaders.append("Authorization", "Bearer " + token);
         var requestOptions = {
             method: 'GET',
@@ -65,7 +68,7 @@ function QrScreen({ navigation }) {
 
     const getUserStatus = () => {
         var myHeaders = new Headers();
-        console.log(token);
+        console.log('Re-update after 10 secs');
         if (token) {
             myHeaders.append("Authorization", "Bearer " + token);
             var requestOptions = {
@@ -77,13 +80,12 @@ function QrScreen({ navigation }) {
             fetch("https://ep-app-server.onrender.com/profile", requestOptions)
                 .then(response => response.json())
                 .then(result => {
-                    console.log(result.booking);
+                    console.log('User status:', result.booking);
                     if (result.booking === 1) {
-                         //generateQRCode();
-                         setUserStatus(true);
-                     } else {
-                         setUserStatus(false);
-                     }
+                        setUserStatus(true);
+                    } else {
+                        setUserStatus(false);
+                    }
                 })
                 .catch(error => console.log('error', error));
         } else {
@@ -97,7 +99,7 @@ function QrScreen({ navigation }) {
     useEffect(() => {
         const interval = setInterval(() => {
             getUserStatus();
-        }, 1000);
+        }, 10000);
         return () => clearInterval(interval);
     }, [token]);
 
@@ -107,9 +109,9 @@ function QrScreen({ navigation }) {
             if (generated === false) {
                 generateQRCode();
             }
-        }, 1000);
+        }, 10000);
         return () => clearInterval(interval);
-    }, [generated]); 
+    }, [generated]);
 
     function generateRandomString(length) {
         callUserID();
@@ -120,7 +122,7 @@ function QrScreen({ navigation }) {
             const randomIndex = Math.floor(Math.random() * characters.length);
             result += characters.charAt(randomIndex);
         }
-        
+
         return id + result;
     }
 
@@ -131,12 +133,16 @@ function QrScreen({ navigation }) {
         setShowQR(true);
         setMessage('Đây là mã QR của bạn');
         setGenerated(true);
-    }   
-
-    console.log(userStatus);
+    }
 
     return (
-        <View style={styles.background}>
+        <View style={{
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor:theme=='dark'?'#000':'white',
+            width: '100%',
+            height: '100%',
+        }}>
             {
                 !userStatus ? (
                     <Text>Mã QR chỉ có thể tạo khi bạn đã đặt chỗ</Text>
@@ -159,18 +165,6 @@ function QrScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    background: {
-        width: "100%",
-        height: "100%",
-        justifyContent: "center",
-        alignItems: "center"
-    },
-    generatebtn: {
-        position: 'absolute',
-        bottom: 50,
-        padding: 10,
-        backgroundColor: '#2957C2',
-    },
     qrContainer: {
         marginTop: 30,
         width: 300,

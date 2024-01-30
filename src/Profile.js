@@ -130,7 +130,7 @@ function Profile({ navigation }) {
             fetch(`https://ep-app-server.onrender.com/update/${id}`, requestOptions)
                 .then(response => response.json())
                 .then(result => {
-                    console.log('Da update');
+                    console.log('Da update', '', result);
                     setShowUpdate(false);
                 })
                 .catch(error => console.log('error', error));
@@ -146,9 +146,12 @@ function Profile({ navigation }) {
         }
     }
 
+    useEffect(() => {
+        getUserInfo();
+    }, [showUpdate]);
 
     callFromBackEnd();
-    getUserInfo();
+    //getUserInfo();
 
     return (
         <View style={styles.background}>
