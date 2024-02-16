@@ -11,6 +11,8 @@ import {
 
 import { AuthContext } from '../component/context';
 import data from './data/data';
+import Icon from 'react-native-vector-icons/FontAwesome'
+import LinearGradient from 'react-native-linear-gradient';
 
 function SignUp({ navigation }) {
     const [fdata, setFdata] = React.useState({
@@ -85,76 +87,69 @@ function SignUp({ navigation }) {
     }
     return (
         <View style={styles.background}>
-            <Text style={styles.header}>Tạo tài khoản</Text>
-            <Text style={{ marginTop: 5, fontSize: 16, color: "#000" }}>Bạn đã có tài khoản ?</Text>
             <TouchableOpacity style={{ marginTop: 5 }} onPress={() => navigation.navigate(
                 'LoginScreen')}>
-                <Text style={{ fontSize: 16, color: "#2957C2" }}>Đăng nhập</Text>
+                <Icon name="arrow-left" size={17} color="#212121" />
             </TouchableOpacity>
-            <View style={styles.inputContainer}>
-                <Text style={styles.text}>Họ và tên</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder='Nguyễn Văn A'
-                    onChangeText={(text) => setFdata({ ...fdata, name: text })}
-                //value={userName}
-                />
+            <View style={styles.header}>
+                <Text style={styles.textHeading}>Tạo</Text>
+                <Text style={styles.textHeadingPurple}>Tài khoản</Text>
             </View>
-            <View style={styles.inputContainer}>
-                <Text style={styles.text}>Email</Text>
-                <TextInput
-                    style={styles.input}
-                    onPressIn={() => setErrorMsg(null)}
-                    placeholder='nguyenvana@gmail.com'
-                    onChangeText={(text) => setFdata({ ...fdata, email: text })}
-                //onChangeText={onChangePassword}
-                //value={password}
-                />
-            </View>
-            <View style={styles.inputContainer}>
-                <Text style={styles.text}>Mật khẩu</Text>
-                <TextInput
-                    style={styles.input}
-                    onPressIn={() => setErrorMsg(null)}
-                    placeholder='@NguyenVanA12345'
-                    onChangeText={(text) => setFdata({ ...fdata, password: text })}
-                    secureTextEntry={true}
-                //onChangeText={onChangePassword}
-                //value={password}
-                />
-            </View>
-            <View style={styles.inputContainer}>
-                <Text style={styles.text}>Xác nhận mật khẩu</Text>
-                <TextInput
-                    style={styles.input}
-                    onPressIn={() => setErrorMsg(null)}
-                    placeholder='@NguyenVanA12345'
-                    onChangeText={(text) => setFdata({ ...fdata, cpassword: text })}
-                    secureTextEntry={true}
-                //onChangeText={onChangePassword}
-                //value={password}
-                />
-            </View>
-            <View style={styles.inputContainer}>
-                <Text style={styles.text}>Số điện thoại</Text>
-                <TextInput
-                    style={styles.input}
-                    onPressIn={() => setErrorMsg(null)}
-                    placeholder='0123456789'
-                    onChangeText={(text) => setFdata({ ...fdata, phoneNumber: text })}
-                //onChangeText={onChangePassword}
-                //value={password}
-                />
-            </View>
+            <TextInput
+                style={styles.input}
+                placeholder='Nguyễn Văn A'
+                onChangeText={(text) => setFdata({ ...fdata, name: text })}
+            //value={userName}
+            />
+            <TextInput
+                style={styles.input}
+                onPressIn={() => setErrorMsg(null)}
+                placeholder='nguyenvana@gmail.com'
+                onChangeText={(text) => setFdata({ ...fdata, email: text })}
+            //onChangeText={onChangePassword}
+            //value={password}
+            />
+            <TextInput
+                style={styles.input}
+                onPressIn={() => setErrorMsg(null)}
+                placeholder='@NguyenVanA12345'
+                onChangeText={(text) => setFdata({ ...fdata, password: text })}
+                secureTextEntry={true}
+            //onChangeText={onChangePassword}
+            //value={password}
+            />
+            <TextInput
+                style={styles.input}
+                onPressIn={() => setErrorMsg(null)}
+                placeholder='@NguyenVanA12345'
+                onChangeText={(text) => setFdata({ ...fdata, cpassword: text })}
+                secureTextEntry={true}
+            //onChangeText={onChangePassword}
+            //value={password}
+            />
+            <TextInput
+                style={styles.input}
+                onPressIn={() => setErrorMsg(null)}
+                placeholder='0123456789'
+                onChangeText={(text) => setFdata({ ...fdata, phoneNumber: text })}
+            //onChangeText={onChangePassword}
+            //value={password}
+            />
+
             {
                 errorMsg ? <Text style={{ color: "red", fontSize: 15 }}>{errorMsg}</Text> : null
             }
-            <TouchableOpacity style={styles.signInBtn} onPress={() => { SendToBackEnd(); }}>
-                <Text
-                    style={{ color: "#fff", textTransform: "uppercase", fontWeight: "bold" }}
-                >
-                    Đăng ký</Text>
-            </TouchableOpacity>
+            <LinearGradient
+                colors={['#CEC9F2', '#B1B1F1', '#9C9FF0']}
+                style={styles.signInBtn}
+            >
+                <TouchableOpacity
+                    style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}
+                    onPress={() => { SendToBackEnd(); }}>
+                    <Text style={styles.textLight} >
+                        Tiếp tục</Text>
+                </TouchableOpacity>
+            </LinearGradient>
         </View>
     )
 }
@@ -166,41 +161,87 @@ const styles = StyleSheet.create({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-
+        backgroundColor: "#FFFFFF",
+        padding: 24,
+        gap: 10,
     },
     header: {
-        marginTop: 33,
-        color: "#2957C2",
-        fontSize: 22,
-        fontWeight: "bold"
+        marginTop: 37,
     },
-    inputContainer: {
-        width: "100%",
-        height: "auto",
-        padding: 18,
+    textLight: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        fontFamily: 'Urbanist-Regular'
     },
-    text: {
-        fontSize: 14,
-        color: 'black',
+    textDark: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#212121',
+        fontFamily: 'Urbanist-Regular'
+    },
+    textHeading: {
+        fontSize: 48,
+        fontWeight: "bold",
+        fontFamily: 'Urbanist-Regular',
+        color: '#212121',
+    },
+    textHeadingPurple: {
+        fontSize: 48,
+        fontWeight: "bold",
+        fontFamily: 'Urbanist-Regular',
+        color: '#9A9DF0',
+    },
+    error: {
+        color: "red", fontSize: 13, marginTop: 50
     },
     input: {
         width: "100%",
-        height: 40,
-        borderWidth: 1,
-        borderColor: "#979797",
-        padding: 10,
-        marginTop: 4,
+        height: 60,
+        backgroundColor: '#F8F7FD',
+        borderRadius: 10,
+        marginTop: 10,
+        color: '#212121',
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingLeft: 16,
+        gap: 10,
+    },
+    inputText: {
+        width: "100%",
+        color: '#212121',
+        height: 60,
+        borderRadius: 10,
+        backgroundColor: '#F8F7FD',
+    },
+    rememberBtn: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignSelf: 'center',
+        alignItems: 'center',
+        gap: 16,
     },
     signInBtn: {
-        position: 'absolute',
-        backgroundColor: "#2957C2",
+        backgroundColor: "#9C9FF0",
         alignItems: 'center',
         justifyContent: 'center',
-        width: "90%",
-        height: 44,
-        bottom: 20,
-    }
+        height: 58,
+        marginTop: 16,
+        borderRadius: 10,
+    },
+    platform: {
+        width: 88,
+        height: 60,
+        borderRadius: 16,
+        borderColor: '#EEEEEE',
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    image: {
+        resizeMode: 'contain',
+    },
 });
 
 

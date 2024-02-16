@@ -6,17 +6,22 @@ import {
     TextInput,
     Touchable,
     TouchableOpacity,
-    useColorScheme
+    useColorScheme,
+    Image
 } from 'react-native'
 
+import Icon from 'react-native-vector-icons/FontAwesome'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import CheckBox from '@react-native-community/checkbox';
+import LinearGradient from 'react-native-linear-gradient';
 import { AuthContext } from '../component/context';
 
 
 
+
 function Login({ navigation }) {
-    const theme = useColorScheme()
+    const theme = useColorScheme();
+    const [toggleCheckBox, setToggleCheckBox] = useState(false);
 
     const { signIn } = React.useContext(AuthContext);
 
@@ -26,6 +31,7 @@ function Login({ navigation }) {
     });
 
     const [errorMsg, setErrorMsg] = useState(null);
+    const [isTyping, setIsTyping] = useState(false);
 
     const storeToken = async (token) => {
         try {
@@ -39,7 +45,7 @@ function Login({ navigation }) {
     //"https://ep-app-server.onrender.com/parking"
 
     const SendToBackEnd = () => {
-        //console.log(fdata);
+        console.log('Button clicked');
         if (fdata.email === '' || fdata.password === '') {
             setErrorMsg('Bạn cần nhập đủ thông tin');
             console.log(errorMsg);
@@ -74,53 +80,117 @@ function Login({ navigation }) {
 
     return (
         <View style={styles.background}>
-            <Text style={styles.header}>Đăng nhập</Text>
-            <View style={styles.inputContainer}>
-                <Text style={styles.text}>Tài khoản</Text>
+            <View style={styles.header}>
+                <Text style={styles.textHeading}>Đăng nhập</Text>
+                <Text style={styles.textHeadingPurple}>Tài khoản</Text>
+            </View>
+
+            <View style={styles.input}>
+                <Icon name="envelope" size={17} color={isTyping === true ? '#212121' : '#999'} />
                 <TextInput
-                    style={styles.input}
+                    style={styles.inputText}
                     placeholder='Email'
                     placeholderTextColor={theme === 'dark' ? '#999' : '#999'}
                     onChangeText={(text) => setFdata({ ...fdata, email: text })}
-                    onPressIn={() => setErrorMsg(null)}
+                    onPressIn={() => {
+                        setErrorMsg(null);
+                        setIsTyping(!isTyping);
+                    }}
+                // onPressOut={() => {
+                //     setIsTyping(!isTyping);
+                // }}
                 />
             </View>
-            <View style={styles.inputContainer}>
-                <Text style={styles.text}>Mật khẩu</Text>
+
+
+            <View style={styles.input}>
+                <Icon name="lock" size={20} color={isTyping === true ? '#212121' : '#999'} />
                 <TextInput
-                    style={styles.input}
+                    style={styles.inputText}
                     placeholder='Mật khẩu'
-                    placeholderTextColor={theme === 'dark' ? '#999' : '#999'}
+                    placeholderTextColor={theme === 'dark' ? '#9E9E9E' : '#9E9E9E'}
                     onChangeText={(text) => setFdata({ ...fdata, password: text })}
                     secureTextEntry={true}
-                    onPressIn={() => setErrorMsg(null)}
+                    onPressIn={() => {
+                        setErrorMsg(null);
+                        setIsTyping(!isTyping);
+                    }}
+                // onPressOut={() => {
+                //     setIsTyping(!isTyping);
+                // }}
                 />
             </View>
-            <View style={{ width: "90%", }}>
-                <TouchableOpacity 
-                    onPress={() => {
-                        
-                    }}
-                    style={{ alignItems: "flex-end", marginTop: 10, }}
-                >
-                    <Text style={{ color: "#2957C2", fontWeight: "bold" }}>Quên mật khẩu</Text>
-                </TouchableOpacity>
+
+            <View style={styles.rememberBtn} >
+                <CheckBox
+                    disabled={false}
+                    value={toggleCheckBox}
+                    onValueChange={(newValue) => setToggleCheckBox(newValue)}
+                    tintColors={{ true: '#4448AE', false: '#4448AE' }}
+                />
+                <Text style={styles.textDark}>Ghi nhớ đăng nhập</Text>
+            </View>
+
+            <LinearGradient
+                colors={['#CEC9F2', '#B1B1F1', '#9C9FF0']}
+                style={styles.signInBtn}
+            >
                 <TouchableOpacity
-                    style={{ alignItems: "flex-end", marginTop: 10, }}
-                    onPress={() => navigation.navigate('SignUpScreen')}
+                    onPress={() => SendToBackEnd()}
+                    style={{width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center'}}
                 >
-                    <Text style={{ color: "#2957C2", fontWeight: "bold" }}>Tạo tài khoản mới</Text>
+                    <Text style={styles.textLight}>
+                        Đăng nhập</Text>
+                </TouchableOpacity>
+            </LinearGradient>
+
+            <TouchableOpacity
+                onPress={() => navigation.navigate('ForgotPasswordScreen')}
+                style={{ alignItems: "center", marginTop: 10, }}
+            >
+                <Text style={{ color: "#4D5DFA", fontWeight: "bold" }}>Quên mật khẩu ?</Text>
+            </TouchableOpacity>
+            <Text
+                style={{
+                    alignSelf: 'center',
+                    color: '#616161',
+                    fontWeight: '600',
+                    marginTop: 30,
+                }}
+            >
+                Hoặc đăng nhập bằng
+            </Text>
+            <View style={styles.rememberBtn}>
+                <TouchableOpacity style={styles.platform}>
+                    <Image
+                        source={require('../assets/images/facebook.png')}
+                        style={styles.image}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.platform}>
+                    <Image
+                        source={require('../assets/images/google.png')}
+                        style={styles.image}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.platform}>
+                    <Image
+                        source={require('../assets/images/apple.png')}
+                        style={styles.image}
+                    />
+                </TouchableOpacity>
+            </View>
+            <View style={styles.rememberBtn}>
+                <Text style={{ color: '#616161' }}>Bạn chưa có tài khoản ?</Text>
+                <TouchableOpacity
+                     onPress={() => navigation.navigate('SignUpScreen')}
+                >
+                    <Text style={{ color: "#4D5DFA", fontWeight: "bold" }}>Tạo tài khoản mới ngay</Text>
                 </TouchableOpacity>
             </View>
             {
                 errorMsg ? <Text style={styles.error}>{errorMsg}</Text> : null
             }
-            <TouchableOpacity style={styles.signInBtn} onPress={() => SendToBackEnd()}>
-                <Text
-                    style={{ color: "#fff", textTransform: "uppercase", fontWeight: "bold" }}
-                >
-                    Đăng nhập</Text>
-            </TouchableOpacity>
         </View>
     )
 }
@@ -132,43 +202,86 @@ const styles = StyleSheet.create({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+        backgroundColor: "#FFFFFF",
+        padding: 24,
+        gap: 10,
     },
     header: {
-        marginTop: 33,
-        color: "#2957C2",
-        fontSize: 20,
-        fontWeight: "bold"
+        marginTop: 87,
     },
-    inputContainer: {
-        width: "100%",
-        height: "auto",
-        padding: 18,
+    textLight: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        fontFamily: 'Urbanist-Regular'
     },
-    text: {
-        fontSize: 12,
-        color: 'black',
+    textDark: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#212121',
+        fontFamily: 'Urbanist-Regular'
+    },
+    textHeading: {
+        fontSize: 48,
+        fontWeight: "bold",
+        fontFamily: 'Urbanist-Regular',
+        color: '#212121',
+    },
+    textHeadingPurple: {
+        fontSize: 48,
+        fontWeight: "bold",
+        fontFamily: 'Urbanist-Regular',
+        color: '#9A9DF0',
     },
     error: {
         color: "red", fontSize: 13, marginTop: 50
     },
     input: {
         width: "100%",
-        height: 40,
-        borderWidth: 1,
-        borderColor: "#979797",
-        padding: 10,
+        height: 60,
+        backgroundColor: '#F8F7FD',
+        borderRadius: 10,
         marginTop: 10,
+        color: '#212121',
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingLeft: 16,
+        gap: 10,
+    },
+    inputText: {
+        width: "100%",
+        color: '#212121',
+        height: 60,
+        borderRadius: 10,
+        backgroundColor: '#F8F7FD',
+    },
+    rememberBtn: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignSelf: 'center',
+        alignItems: 'center',
+        gap: 16,
     },
     signInBtn: {
-        position: 'absolute',
-        backgroundColor: "#2957C2",
+        backgroundColor: "#9C9FF0",
         alignItems: 'center',
         justifyContent: 'center',
-        width: "90%",
-        height: 44,
-        bottom: 20,
-    }
+        height: 58,
+        borderRadius: 10,
+    },
+    platform: {
+        width: 88,
+        height: 60,
+        borderRadius: 16,
+        borderColor: '#EEEEEE',
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    image: {
+        resizeMode: 'contain',
+    },
 });
 
 
