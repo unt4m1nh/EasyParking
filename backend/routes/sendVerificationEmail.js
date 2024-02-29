@@ -27,7 +27,7 @@ router.post('/sendResetPassword', async (req, res) => {
             return res.status(442).send({ error: "Email đăng ký tài khoản không tồn tại" });
         }
 
-        const resetToken = generateRandomString(6);
+        const resetToken = generateRandomString(4);
         const resetTokenExpiredDate = Date.now() + 3000000;
         console.log(resetToken);
         await User.updateOne({email: email}, {$set: {resetToken: resetToken, resetTokenExpiredDate: resetTokenExpiredDate }});
@@ -42,7 +42,7 @@ router.post('/sendResetPassword', async (req, res) => {
         });
         var mailOptions = {
             from: 'EasyParking',
-            to: 'giaminh5567@gmail.com',
+            to: email,
             subject: 'Easy Parking account password reset code',
             text: 'Verification',
             html: `<p>Your reset password code is ${resetToken}`

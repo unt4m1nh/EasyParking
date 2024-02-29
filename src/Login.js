@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import {
     Text, View,
     StyleSheet,
-    Button,
     TextInput,
-    Touchable,
     TouchableOpacity,
     useColorScheme,
-    Image
+    Image,
+    Modal
 } from 'react-native'
 
 import Icon from 'react-native-vector-icons/FontAwesome'
@@ -15,8 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CheckBox from '@react-native-community/checkbox';
 import LinearGradient from 'react-native-linear-gradient';
 import { AuthContext } from '../component/context';
-
-
+import { API_URL, LOCAL_IP_URL} from "@env"
 
 
 function Login({ navigation }) {
@@ -30,8 +28,10 @@ function Login({ navigation }) {
         password: '',
     });
 
-    const [errorMsg, setErrorMsg] = useState(null);
+    const [message, setMessage] = useState(null);
+    const [messageType, setMessageType] = useState(null);
     const [isTyping, setIsTyping] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
 
     const storeToken = async (token) => {
         try {
@@ -45,14 +45,16 @@ function Login({ navigation }) {
     //"https://ep-app-server.onrender.com/parking"
 
     const SendToBackEnd = () => {
-        console.log('Button clicked');
+        console.log(`${process.env.API_URL}`);
         if (fdata.email === '' || fdata.password === '') {
-            setErrorMsg('Bạn cần nhập đủ thông tin');
-            console.log(errorMsg);
+            setMessageType('Chú ý');
+            setMessage('Bạn cần nhập đủ thông tin');
+            setModalVisible(true);
+            console.log(message);
             return;
         } else {
             console.log(fdata);
-            fetch("https://ep-app-server.onrender.com/signin", {
+            fetch(`${process.env.API_URL}/signin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -63,7 +65,9 @@ function Login({ navigation }) {
                 .then(res => res.json()).then(
                     data => {
                         if (data.error) {
-                            setErrorMsg(data.error);
+                            setMessageType('Lỗi');
+                            setMessage(data.error);
+                            setModalVisible(true);
                         } else {
                             alert('Đăng nhập thành công');
                             console.log(data.token);
@@ -80,6 +84,34 @@ function Login({ navigation }) {
 
     return (
         <View style={styles.background}>
+            <Modal
+                animationType='fade'
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    Alert.alert('Modal has been closed.');
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.textDark}>{messageType}</Text>
+                        <Text style={styles.textDarkRegular}>{message}</Text>
+                        <LinearGradient
+                            colors={['#CEC9F2', '#B1B1F1', '#9C9FF0']}
+                            style={styles.closeBtn}
+                        >
+                            <TouchableOpacity
+                                onPress={() => setModalVisible(!modalVisible)}
+                                style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <Text style={styles.textLight}>
+                                    Đóng</Text>
+                            </TouchableOpacity>
+                        </LinearGradient>
+                    </View>
+                </View>
+            </Modal>
             <View style={styles.header}>
                 <Text style={styles.textHeading}>Đăng nhập</Text>
                 <Text style={styles.textHeadingPurple}>Tài khoản</Text>
@@ -93,7 +125,7 @@ function Login({ navigation }) {
                     placeholderTextColor={theme === 'dark' ? '#999' : '#999'}
                     onChangeText={(text) => setFdata({ ...fdata, email: text })}
                     onPressIn={() => {
-                        setErrorMsg(null);
+                        setMessage(null);
                         setIsTyping(!isTyping);
                     }}
                 // onPressOut={() => {
@@ -112,7 +144,7 @@ function Login({ navigation }) {
                     onChangeText={(text) => setFdata({ ...fdata, password: text })}
                     secureTextEntry={true}
                     onPressIn={() => {
-                        setErrorMsg(null);
+                        setMessage(null);
                         setIsTyping(!isTyping);
                     }}
                 // onPressOut={() => {
@@ -120,7 +152,6 @@ function Login({ navigation }) {
                 // }}
                 />
             </View>
-
             <View style={styles.rememberBtn} >
                 <CheckBox
                     disabled={false}
@@ -130,14 +161,13 @@ function Login({ navigation }) {
                 />
                 <Text style={styles.textDark}>Ghi nhớ đăng nhập</Text>
             </View>
-
             <LinearGradient
                 colors={['#CEC9F2', '#B1B1F1', '#9C9FF0']}
                 style={styles.signInBtn}
             >
                 <TouchableOpacity
                     onPress={() => SendToBackEnd()}
-                    style={{width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center'}}
+                    style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}
                 >
                     <Text style={styles.textLight}>
                         Đăng nhập</Text>
@@ -183,14 +213,11 @@ function Login({ navigation }) {
             <View style={styles.rememberBtn}>
                 <Text style={{ color: '#616161' }}>Bạn chưa có tài khoản ?</Text>
                 <TouchableOpacity
-                     onPress={() => navigation.navigate('SignUpScreen')}
+                    onPress={() => navigation.navigate('SignUpScreen')}
                 >
                     <Text style={{ color: "#4D5DFA", fontWeight: "bold" }}>Tạo tài khoản mới ngay</Text>
                 </TouchableOpacity>
             </View>
-            {
-                errorMsg ? <Text style={styles.error}>{errorMsg}</Text> : null
-            }
         </View>
     )
 }
@@ -205,6 +232,28 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         padding: 24,
         gap: 10,
+    },
+    centeredView: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    modalView: {
+        display: 'flex',
+        width: '80%',
+        gap: 36,
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        padding: 24,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
     },
     header: {
         marginTop: 87,
@@ -221,20 +270,20 @@ const styles = StyleSheet.create({
         color: '#212121',
         fontFamily: 'Urbanist-Regular'
     },
+    textDarkRegular: {
+        fontSize: 16,
+        color: '#212121',
+        fontFamily: 'Urbanist-Regular'
+    },
     textHeading: {
         fontSize: 48,
-        fontWeight: "bold",
         fontFamily: 'Urbanist-Regular',
         color: '#212121',
     },
     textHeadingPurple: {
         fontSize: 48,
-        fontWeight: "bold",
         fontFamily: 'Urbanist-Regular',
         color: '#9A9DF0',
-    },
-    error: {
-        color: "red", fontSize: 13, marginTop: 50
     },
     input: {
         width: "100%",
@@ -248,13 +297,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingLeft: 16,
         gap: 10,
-    },
-    inputText: {
-        width: "100%",
-        color: '#212121',
-        height: 60,
-        borderRadius: 10,
-        backgroundColor: '#F8F7FD',
     },
     rememberBtn: {
         display: 'flex',
@@ -270,6 +312,11 @@ const styles = StyleSheet.create({
         height: 58,
         borderRadius: 10,
     },
+    closeBtn: {
+        width: '100%',
+        height: 48,
+        borderRadius: 10,
+    },  
     platform: {
         width: 88,
         height: 60,

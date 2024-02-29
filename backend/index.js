@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const authRoutes = require("./routes/authRoutes.js");
 const sendMail = require("./routes/sendVerificationEmail.js");
+const checkCode = require("./routes/checkCode.js");
 const resetPassword = require("./routes/resetPassword.js");
 const requireToken = require("./Middlewares/AuthTokenRequired.js");
 const Parking = require('./models/Parking.js')
@@ -23,6 +24,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(authRoutes);
 app.use(sendMail);
+app.use(checkCode);
 app.use(resetPassword);
 
 app.get('/', requireToken, (req, res) => {

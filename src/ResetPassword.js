@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     Text, View,
     StyleSheet,
@@ -6,93 +6,71 @@ import {
     TextInput,
     Touchable,
     TouchableOpacity,
-    Alert,
+    useColorScheme,
     Modal
 } from 'react-native'
 
-import Icon from 'react-native-vector-icons/FontAwesome'
 import LinearGradient from 'react-native-linear-gradient';
-import { set } from 'mongoose';
+import { useEmailState } from '../component/EmailContext';
 
-function SignUp({ navigation }) {
+
+
+
+function ResetPassword({ navigation }) {
+    const theme = useColorScheme();
+    const [toggleCheckBox, setToggleCheckBox] = useState(false);
+    const { emailContext } = useEmailState();
     const [fdata, setFdata] = React.useState({
-        name: '',
-        email: '',
-        password: '',
-        cpassword: '',
-        phoneNumber: '',
-        idUser: '',
-    })
+        newPassword: '',
+        confirmPassword: '',
+    });
 
     const [message, setMessage] = useState(null);
     const [messageType, setMessageType] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
 
-    function generateRandomString(length) {
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let result = '';
-
-        for (let i = 0; i < length; i++) {
-            const randomIndex = Math.floor(Math.random() * characters.length);
-            result += characters.charAt(randomIndex);
-        }
-
-        return result;
-    }
-
-    //handle signup request
-
-    const SendToBackEnd = () => {
-        const idU = generateRandomString(8);
-        setFdata({ ...fdata, idUser: idU });
-        var raw = JSON.stringify({
-            "name": fdata.name,
-            "email": fdata.email,
-            "password": fdata.password,
-            "phoneNumber": fdata.phoneNumber,
-            "idUser": fdata.idUser
-        })
-        //console.log(fdata);
-        if (fdata.name == '' ||
-            fdata.email == '' ||
-            fdata.password == '' ||
-            fdata.phoneNumber == '' ||
-            fdata.cpassword == '' ||
-            fdata.idUser == '') {
-            setMessageType("Chú ý");
-            setMessage("Bạn cần nhập đủ thông tin");
+    const resetPassword = () => {
+        console.log(fdata.newPassword, ' ', fdata.confirmPassword);
+        if (fdata.newPassword !== fdata.confirmPassword) {
+            setMessageType('Lỗi');
+            setMessage('Mật khẩu xác nhận chưa chính xác');
+            setModalVisible(true);
+            return;
+        } else if (fdata.newPassword === '' || fdata.confirmPassword === '') {
+            setMessageType('Chú ý');
+            setMessage('Bạn cần nhập đủ thông tin');
             setModalVisible(true);
             return;
         } else {
-            if (fdata.password !== fdata.cpassword) {
-                setMessageType("Lỗi");
-                setMessage("Mật khẩu xác nhận không chính xác");
-                setModalVisible(true);
-                return;
-            } else {
-                fetch(`${process.env.API_URL}/signup`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: raw,
-                    redirect: 'follow'
-                })
-                    .then(res => res.json()).then(
-                        data => {
-                            if (data.error) {
-                                setMessageType("Lỗi");
-                                setMessage(data.error);
-                                setModalVisible(true);
-                            } else {
-                                alert('Tạo tài khoản thành công');
-                                navigation.navigate("LoginScreen");
-                            }
+            fetch(`${process.env.LOCAL_IP_URL}/resetPassword`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "email": emailContext,
+                    "newPassword": fdata.newPassword,
+                }),
+                redirect: 'follow'
+            })
+                .then(res => res.text()).then(
+                    data => {
+                        console.log(data);
+                        if (data.error) {
+                            setMessageType("Lỗi");
+                            setMessage(data.error);
+                            setModalVisible(true);
+                        } else {
+                            navigation.navigate('LoginScreen');
                         }
-                    ).catch(error => console.log('error', error));
-            }
+                    }
+                ).catch(error => {
+                    console.log('error', error);
+                    alert('error' + error);
+                });
         }
     }
+
     return (
         <View style={styles.background}>
             <Modal
@@ -123,63 +101,36 @@ function SignUp({ navigation }) {
                     </View>
                 </View>
             </Modal>
-            <TouchableOpacity style={{ marginTop: 5 }} onPress={() => navigation.navigate(
-                'LoginScreen')}>
-                <Icon name="arrow-left" size={17} color="#212121" />
-            </TouchableOpacity>
             <View style={styles.header}>
-                <Text style={styles.textHeading}>Tạo</Text>
-                <Text style={styles.textHeadingPurple}>Tài khoản</Text>
+                <Text style={styles.textHeading}>Tạo lại</Text>
+                <Text style={styles.textHeadingPurple}>Mật khẩu</Text>
             </View>
-            <TextInput
-                style={styles.input}
-                placeholder='Họ và tên'
-                onChangeText={(text) => setFdata({ ...fdata, name: text })}
-            //value={userName}
-            />
+
             <TextInput
                 style={styles.input}
                 onPressIn={() => setMessage(null)}
-                placeholder='Email'
-                onChangeText={(text) => setFdata({ ...fdata, email: text })}
-            //onChangeText={onChangePassword}
-            //value={password}
-            />
-            <TextInput
-                style={styles.input}
-                onPressIn={() => setMessage(null)}
-                placeholder='Mật khẩu'
-                onChangeText={(text) => setFdata({ ...fdata, password: text })}
+                placeholder='Mật khẩu mới'
+                onChangeText={(text) => setFdata({ ...fdata, newPassword: text })}
                 secureTextEntry={true}
-            //onChangeText={onChangePassword}
-            //value={password}
             />
             <TextInput
                 style={styles.input}
                 onPressIn={() => setMessage(null)}
                 placeholder='Nhập lại mật khẩu'
-                onChangeText={(text) => setFdata({ ...fdata, cpassword: text })}
+                onChangeText={(text) => setFdata({ ...fdata, confirmPassword: text })}
                 secureTextEntry={true}
-            //onChangeText={onChangePassword}
-            //value={password}
             />
-            <TextInput
-                style={styles.input}
-                onPressIn={() => setMessage(null)}
-                placeholder='Số điện thoại'
-                onChangeText={(text) => setFdata({ ...fdata, phoneNumber: text })}
-            //onChangeText={onChangePassword}
-            //value={password}
-            />  
+
             <LinearGradient
                 colors={['#CEC9F2', '#B1B1F1', '#9C9FF0']}
                 style={styles.signInBtn}
             >
                 <TouchableOpacity
+                    onPress={() => resetPassword()}
                     style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}
-                    onPress={() => { SendToBackEnd(); }}>
-                    <Text style={styles.textLight} >
-                        Tiếp tục</Text>
+                >
+                    <Text style={styles.textLight}>
+                        Xác nhận</Text>
                 </TouchableOpacity>
             </LinearGradient>
         </View>
@@ -220,7 +171,7 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     header: {
-        marginTop: 37,
+        marginTop: 87,
     },
     textLight: {
         fontSize: 16,
@@ -267,13 +218,6 @@ const styles = StyleSheet.create({
         paddingLeft: 16,
         gap: 10,
     },
-    inputText: {
-        width: "100%",
-        color: '#212121',
-        height: 60,
-        borderRadius: 10,
-        backgroundColor: '#F8F7FD',
-    },
     rememberBtn: {
         display: 'flex',
         flexDirection: 'row',
@@ -286,14 +230,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         height: 58,
-        marginTop: 16,
         borderRadius: 10,
+        marginTop: 36,
     },
     closeBtn: {
         width: '100%',
         height: 48,
         borderRadius: 10,
-    }, 
+    },  
     platform: {
         width: 88,
         height: 60,
@@ -309,4 +253,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default SignUp;
+export default ResetPassword;
