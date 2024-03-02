@@ -56,17 +56,17 @@ app.get('/parking', async (req, res) => {
 //Update user info
 app.patch('/update/:id',  async (req, res) => {
   const {name, email, plate, phoneNumber} = req.body;
-  console.log(name, email, plate, phoneNumber)
+  console.log(name, email, plate, phoneNumber);
   if (!name || !email || !plate || !phoneNumber) {
     return res.status(442).send({error: "Vui lòng nhập đủ thông tin"});
   }
   
   try {
     const userId = req.params.id;
-    const user = await User.findOneAndUpdate({_id: userId}, req.body, {new: true});
-    console.log(user)
-    res.json({user});
+    await User.findOneAndUpdate({idUser: userId}, req.body, {new: true});
+    return res.status(200).send({message: "Cập nhật thông tin tài khoản thành công"});
   } catch (error) {
+    console.log('Error', error);
     res.status(500).json({ error: 'Có lỗi xảy ra trong quá trình cập nhật thông tin người dùng' });
   }
 });

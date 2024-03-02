@@ -15,6 +15,13 @@ import { AuthContext } from '../component/context';
 function Profile({ navigation }) {
 
     const { signOut } = React.useContext(AuthContext);
+    const [apiData, setApiData] = useState(null);
+    const [token, setToken] = useState(null);
+    const [showUpdate, setShowUpdate] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+    const [message, setMessage] = useState(null);
+    const [messageType, setMessageType] = useState(null);
 
     const retrieveToken = async () => {
         try {
@@ -26,36 +33,18 @@ function Profile({ navigation }) {
         }
     };
 
-    const [fdata, setFdata] = React.useState({
-        name: '',
-        email: '',
-        plate: '',
-        phoneNumber: '',
-        accountBallance: '',
-        payment: '',
-    })
-
-    const [id, setUid] = useState(null);
-    const [token, setToken] = useState(null);
-    const [showUpdate, setShowUpdate] = useState(false);
-    const [modalVisible, setModalVisible] = useState(false);
-    const [showConfirmPopup, setShowConfirmPopup] = useState(false);
-    const [message, setMessage] = useState(null);
-    const [messageType, setMessageType] = useState(null);
-
     retrieveToken().then((storedToken) => {
         if (storedToken) {
             // Use the stored token for authentication
             setToken(storedToken);
         } else {
+            console.log('Retrieval failed');
             // Token not available or retrieval failed
         }
     });
 
-
     const getUserInfo = () => {
         var myHeaders = new Headers();
-        console.log(token);
         myHeaders.append("Authorization", "Bearer " + token);
         var requestOptions = {
             method: 'GET',
@@ -66,26 +55,23 @@ function Profile({ navigation }) {
         fetch(`${process.env.API_URL}/profile`, requestOptions)
             .then(response => response.json())
             .then(result => {
-                setUid(result.id);
-                setFdata({...fdata, email: result.email});
-                setFdata({...fdata, name: result.name});
-                setFdata({...fdata, plate: result.plate});
-                setFdata({...fdata, phoneNumber: result.phoneNumber});
+                setApiData(result);
             })
             .catch(error => console.log('error', error));
+
     }
 
     const updateUserInfo = () => {
-        if (fdata.email === '' && fdata.name === '' && fdata.phoneNumber === '' && fdata.plate === '') {
+        if (apiData.email === '' && apiData.name === '' && apiData.phoneNumber === '' && apiData.plate === '') {
             setMessageType('Lỗi');
             setMessage('Bạn cần nhập đủ thông tin');
             setModalVisible(true);
         } else {
             var raw = JSON.stringify({
-                "name": fdata.name,
-                "email": fdata.email,
-                "phoneNumber": fdata.phoneNumber,
-                "plate": fdata.plate,
+                "name": apiData.name,
+                "email": apiData.email,
+                "phoneNumber": apiData.phoneNumber,
+                "plate": apiData.plate,
             })
 
             var requestOptions = {
@@ -96,11 +82,13 @@ function Profile({ navigation }) {
                 body: raw
             };
 
-            fetch(`${process.env.API_URL}/update/${id}`, requestOptions)
+            fetch(`${process.env.API_URL}/update/${apiData.idUser}`, requestOptions)
                 .then(response => response.json())
                 .then(result => {
-                    console.log('Da update', '', result);
                     setShowUpdate(false);
+                    setMessageType('Thông báo');
+                    setMessage(result.message);
+                    setModalVisible(true);
                 })
                 .catch(error => console.log('error', error));
         }
@@ -116,12 +104,10 @@ function Profile({ navigation }) {
     }
 
     useEffect(() => {
-        console.log('Đã fetch');
         getUserInfo();
-    }, [])
+    }, [token])
 
     useEffect(() => {
-        console.log('Đã fetch')
         getUserInfo();
     }, [showUpdate]);
 
@@ -165,12 +151,12 @@ function Profile({ navigation }) {
                             <View style={styles.info}>
                                 <View>
                                     <Image
-                                        source={{uri: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/Mohamed_Salah_2021_CAN_Final.jpg'}}
+                                        source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/Mohamed_Salah_2021_CAN_Final.jpg' }}
                                         style={styles.avatar}
                                     ></Image>
                                 </View>
-                                <Text style={styles.textTitle}>{fdata.name}</Text>
-                                <Text style={styles.textSmall}>{fdata.email}</Text>
+                                <Text style={styles.textTitle}>{apiData !== null ? apiData.name : 'Lỗi rồi'}</Text>
+                                <Text style={styles.textSmall}>{apiData !== null ? apiData.email : 'Lỗi rồi'}</Text>
                             </View>
                             <View style={styles.settings}>
                                 <TouchableOpacity style={styles.option}
@@ -297,23 +283,23 @@ function Profile({ navigation }) {
                             <View style={styles.updateForm}>
                                 <TextInput
                                     style={styles.input}
-                                    defaultValue={fdata.name}
-                                    onChangeText={(text) => setFdata({ ...fdata, name: text })}
+                                    defaultValue={apiData.name}
+                                    onChangeText={(text) => setApiData({...apiData, name: text})}
                                 />
                                 <TextInput
                                     style={styles.input}
-                                    defaultValue={fdata.email}
-                                    onChangeText={(text) => setFdata({ ...fdata, email: text })}
+                                    defaultValue={apiData.email}
+                                    onChangeText={(text) => setApiData({...apiData, email: text})}
                                 />
                                 <TextInput
                                     style={styles.input}
-                                    defaultValue={fdata.plate}
-                                    onChangeText={(text) => setFdata({ ...fdata, plate: text })}
+                                    defaultValue={apiData.plate}
+                                    onChangeText={(text) => setApiData({...apiData, plate: text})}
                                 />
                                 <TextInput
                                     style={styles.input}
-                                    defaultValue={fdata.phoneNumber}
-                                    onChangeText={(text) => setFdata({ ...fdata, phoneNumber: text })}
+                                    defaultValue={apiData.phoneNumber}
+                                    onChangeText={(text) => setApiData({...apiData, phoneNumber: text})}
                                 />
                             </View>
                         </View>

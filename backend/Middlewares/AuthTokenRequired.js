@@ -10,7 +10,6 @@ module.exports = requireToken = (req, res, next) => {
         return res.status(401).send({ error: "You must be logged in, key is not given" });
     }
     const token = authorization.replace("Bearer ", "");
-    //console.log(token);
     jwt.verify(token, process.env.JWT_SECRET, async (err, payload) => {
         if (err) {
             return res.status(401).json({ error: "You must be logged in, invalid token" });

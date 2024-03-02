@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
     Text, View,
     StyleSheet,
-    Button,
-    TextInput,
-    TouchableOpacity,
     useColorScheme
 } from 'react-native'
 
@@ -30,6 +27,7 @@ function QrScreen({ navigation }) {
 
     const [userStatus, setUserStatus] = useState(true);
     const [id, setUid] = useState(null);
+    const [apiData, setApiData] = useState(null);
 
     const [generated, setGenerated] = useState(false);
     const [token, setToken] = useState(null);
@@ -94,7 +92,6 @@ function QrScreen({ navigation }) {
             .then(response => response.json())
             .then(result => {
                 setUid(result.idUser);
-                //setFdata({ ...fdata, name: uname, email: result.email, plate: result.plate, phoneNumber: result.phoneNumber })
             })
             .catch(error => console.log('error', error));
 
@@ -102,6 +99,7 @@ function QrScreen({ navigation }) {
 
     const getUserStatus = () => {
         var myHeaders = new Headers();
+        console.log(token);
         console.log('Re-update after 10 secs');
         if (token) {
             myHeaders.append("Authorization", "Bearer " + token);
@@ -188,7 +186,7 @@ function QrScreen({ navigation }) {
                         <View style={styles.infoContainer}>
                             {
                                 testData.map((data) => (
-                                    <View style={styles.info}>
+                                    <View key={data.id} style={styles.info}>
                                         <Text style={styles.text}>{data.prop}</Text>
                                         <Text style={styles.textBold}>{data.value}</Text>
                                     </View>
