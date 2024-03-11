@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
     Text, View,
     StyleSheet,
@@ -7,30 +7,16 @@ import {
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
-
+import { useUserState } from '../component/UserContext';
 
 function QrScreen({ navigation }) {
 
-    const theme = useColorScheme()
+    const theme = useColorScheme();
 
-    const retrieveToken = async () => {
-        try {
-            const authToken = await AsyncStorage.getItem('authToken');
-            return authToken;
-        } catch (error) {
-            console.error('Error retrieving token:', error);
-            return null;
-        }
-    };
+    const { userContext, setUserContext } = useUserState();
 
-    const [qrData, setQRData] = useState('1111111111111111');
-
-    const [userStatus, setUserStatus] = useState(true);
-    const [id, setUid] = useState(null);
-    const [apiData, setApiData] = useState(null);
-
-    const [generated, setGenerated] = useState(false);
-    const [token, setToken] = useState(null);
+    const [qrData, setQRData] = useState('1');
+    const [showQrCode, setShowQrCode] = useState(false)
 
     const testData = [
         {
@@ -68,85 +54,9 @@ function QrScreen({ navigation }) {
         }
     ]
 
-
-    retrieveToken().then((storedToken) => {
-        if (storedToken) {
-            // Use the stored token for authentication
-            setToken(storedToken);
-        } else {
-            console.log('Retrieval failed');
-            // Token not available or retrieval failed
-        }
-    });
-
-    const callUserID = () => {
-        var myHeaders = new Headers();
-        myHeaders.append("Authorization", "Bearer " + token);
-        var requestOptions = {
-            method: 'GET',
-            headers: myHeaders,
-            redirect: 'follow'
-        };
-
-        fetch(`${process.env.API_URL}/profile`, requestOptions)
-            .then(response => response.json())
-            .then(result => {
-                setUid(result.idUser);
-            })
-            .catch(error => console.log('error', error));
-
-    }
-
-    const getUserStatus = () => {
-        var myHeaders = new Headers();
-        console.log(token);
-        console.log('Re-update after 10 secs');
-        if (token) {
-            myHeaders.append("Authorization", "Bearer " + token);
-            var requestOptions = {
-                method: 'GET',
-                headers: myHeaders,
-                redirect: 'follow'
-            };
-
-            fetch(`${process.env.API_URL}/profile`, requestOptions)
-                .then(response => response.json())
-                .then(result => {
-                    console.log('User status:', result.booking);
-                    if (result.booking === 1) {
-                        setUserStatus(true);
-                    } else {
-                        setUserStatus(false);
-                    }
-                })
-                .catch(error => console.log('error', error));
-        } else {
-            console.log("Error vkl");
-        }
-
-        //console.log(username);
-    }
-
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            getUserStatus();
-        }, 10000);
-        return () => clearInterval(interval);
-    }, [token]);
-
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (generated === false) {
-                generateQRCode();
-            }
-        }, 10000);
-        return () => clearInterval(interval);
-    }, [generated]);
+    console.log('Đây là User State: ', userContext);
 
     function generateRandomString(length) {
-        callUserID();
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result = '';
 
@@ -155,15 +65,22 @@ function QrScreen({ navigation }) {
             result += characters.charAt(randomIndex);
         }
 
-        return id + result;
+        return userContext.idUser + result;
+
     }
 
     const generateQRCode = () => {
         const data = generateRandomString(10);
         const qrCode = 'ndd12345' + data
         setQRData(qrCode);
-        setGenerated(true);
+        setShowQrCode(true);
     }
+
+    useEffect(() => {
+        if (userContext.booking === 0) {
+            generateQRCode();
+        }
+    }, [userContext]);
 
     return (
         <View style={{
@@ -174,7 +91,7 @@ function QrScreen({ navigation }) {
             height: '100%',
         }}>
             {
-                !userStatus ? (
+                !showQrCode ? (
                     <Text>Mã QR chỉ có thể tạo khi bạn đã đặt chỗ</Text>
                 ) : (
                     <View style={styles.container}>

@@ -8,6 +8,7 @@ import {
     PermissionsAndroid,
     ScrollView,
     Image,
+    Modal,
 } from 'react-native'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,10 +18,13 @@ import Tts from 'react-native-tts';
 import Geolocation from 'react-native-geolocation-service';
 import data from '../backend/data.json';
 import DatePicker from 'react-native-date-picker'
-
+import LinearGradient from 'react-native-linear-gradient';
 import DynamicText from './DynamicText';
+import { useUserState } from '../component/UserContext';
 
 function MapScreen({ navigation }) {
+
+    const { userContext, setUserContext } = useUserState();
     // useStaae variables for detecting places coordinates
     const [currentLongtitude, setCurrentLongtitude] = useState(0);
     const [currentLatitude, setCurrentLatitude] = useState(0);
@@ -39,6 +43,7 @@ function MapScreen({ navigation }) {
     // Storing parking places' details
     const [pData, setPdata] = React.useState({
         nameParking: '',
+        address: '',
         status: '',
         price: '',
         slotLeft: '',
@@ -53,6 +58,7 @@ function MapScreen({ navigation }) {
     const [predictions, setPredictions] = useState([]);
 
     // useState variables for hiding and showing components
+    const [showSearchInput, setShowSearchInput] = useState(false);
     const [showPredictions, setShowPredictions] = useState(false);
     const [showMarker, setShowMarker] = useState(false);
     const [chosen, setChosen] = useState(false);
@@ -62,26 +68,25 @@ function MapScreen({ navigation }) {
     const [show, setShow] = useState(false);
     const [showRoutes, setShowRoutes] = useState(false);
     const [showParkingStatus, setShowParkingStatus] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
 
     const mapViewRef = useRef(null);
 
     //Date Picker variables
-    const [inDate, setIndate] = useState(new Date())
-    const [openPicker1, setOpenPicker1] = useState(false)
-    const [outDate, setOutdate] = useState(new Date())
-    const [openPicker2, setOpenPicker2] = useState(false)
+    const [date, setDate] = useState(new Date());
+    const [openDatePicker, setOpenDatePicker] = useState(false);
+    const [timeCheckin, setTimeCheckin] = useState(new Date())
+    const [openTimeInPicker, setOpenTimeInPicker] = useState(false)
+    const [timeCheckout, setTimeCheckout] = useState(new Date())
+    const [openTimeOutPicker, setOpenTimeOutPicker] = useState(false)
 
+    const [message, setMessage] = useState(null);
+    const [messageType, setMessageType] = useState(null);
     const [token, setToken] = useState(null);
     const [id, setUid] = useState(null);
 
     //Fit screen values
     const edgePaddingValue = 70;
-    const edgePadding = {
-        top: edgePaddingValue,
-        right: edgePaddingValue,
-        bottom: edgePaddingValue,
-        left: edgePaddingValue,
-    }
 
     //Functions
     Tts.setDefaultLanguage('vi-VN');
@@ -106,7 +111,7 @@ function MapScreen({ navigation }) {
         }
     });
 
-    const callUserID = () => {
+    const getUserInfo = () => {
         var myHeaders = new Headers();
         console.log(token);
         myHeaders.append("Authorization", "Bearer " + token);
@@ -119,8 +124,7 @@ function MapScreen({ navigation }) {
         fetch("https://ep-app-server.onrender.com/profile", requestOptions)
             .then(response => response.json())
             .then(result => {
-                setUid(result.idUser);
-                //setFdata({ ...fdata, name: uname, email: result.email, plate: result.plate, phoneNumber: result.phoneNumber })
+                setUserContext(result);
             })
             .catch(error => console.log('error', error));
 
@@ -133,7 +137,6 @@ function MapScreen({ navigation }) {
         };
         const apiKey = 'ae0534df26a0484f9977c8dbadfc05e5';
         const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${text}&format=json&filter=countrycode:vn&apiKey=${apiKey}`;
-        console.log(url);
         fetch(url, requestOptions)
             .then(response => response.json())
             .then(result => {
@@ -165,7 +168,7 @@ function MapScreen({ navigation }) {
         var datetime = getCurrentDateTime();
         var requestBody = {
             'Parking': pData.nameParking,
-            'User': id,
+            'User': userContext.idUser,
             'TimeBooking': datetime
         }
         var requestOptions = {
@@ -175,7 +178,8 @@ function MapScreen({ navigation }) {
             },
             body: JSON.stringify(requestBody)
         };
-        const url = 'https://server-iot-myjn.onrender.com/app2/reservation';
+        // const url = 'https://server-iot-myjn.onrender.com/app2/reservation';
+        const url = `${process.env.LOCAL_IP_URL_BOOKING}/app2/reservation`;
         fetch(url, requestOptions)
             .then(response => {
                 if (response.ok) {
@@ -185,9 +189,9 @@ function MapScreen({ navigation }) {
                 }
             })
             .then(data => {
-                console.log(datetime);
-                console.log('Yêu cầu thành công:');
-                console.log(data);
+                setMessageType('Thành công');
+                setMessage(`Yêu cầu đặt chỗ thành công tại ${parking}`);
+                setModalVisible(true);
                 setSlot(data.reservation);
             })
             .catch(error => {
@@ -198,9 +202,9 @@ function MapScreen({ navigation }) {
     const requestSchedule = () => {
         var requestBody = {
             'Parking': pData.nameParking,
-            'User': id,
-            'date': inDate.toLocaleDateString(),
-            'time': inDate.toLocaleTimeString()
+            'User': userContext.idUser,
+            'date': date.toLocaleDateString(),
+            'time': timeCheckout.toLocaleTimeString()
         }
         var requestOptions = {
             method: 'POST',
@@ -299,7 +303,14 @@ function MapScreen({ navigation }) {
             .catch(error => console.log(error));
     }
 
-    callUserID();
+    useEffect(() => {
+        const interval = setInterval(() => {
+            console.log('Reupdate after 10 secs');
+            console.log('user context: ', userContext);
+            getUserInfo();
+        }, 10000);
+        return () => clearInterval(interval);
+    }, [token]);
 
     useEffect(() => {
         const requestLocationPermission = async () => {
@@ -345,7 +356,7 @@ function MapScreen({ navigation }) {
         }, 1000);
         setChosen(false);
     }
-    
+
     useEffect(() => {
         callFromBackEnd();
         getLocation();
@@ -364,6 +375,10 @@ function MapScreen({ navigation }) {
                     longitudeDelta: 0.02,
                 }}
             >
+
+                {/*
+                // Marker for current location 
+                 */}
                 <Marker
                     title='Bạn đang ở đây'
                     pinColor='white'
@@ -377,6 +392,10 @@ function MapScreen({ navigation }) {
                     strokeWidth={2}
                 >
                 </Circle>
+
+                {/*
+                // Marker for found place 
+                 */}
                 {
                     showMarker && (
                         <Marker
@@ -386,6 +405,8 @@ function MapScreen({ navigation }) {
                         </Marker>
                     )
                 }
+
+                {/* Markers for parkings */}
                 {data.map((item, index) => (
                     <Marker
                         key={index}
@@ -399,6 +420,7 @@ function MapScreen({ navigation }) {
                             setPdata({
                                 ...pData,
                                 nameParking: item.nameParking,
+                                address: item.address,
                                 price: item.price,
                                 slotLeft: item.Value_empty_slot
                             });
@@ -406,11 +428,13 @@ function MapScreen({ navigation }) {
                     >
                         <Image
                             source={require('./img/pin.png')}
-                            style={{width: 20, height: 30}}
+                            style={{ width: 20, height: 30 }}
                             resizeMode="contain"
                         />
                     </Marker>
                 ))}
+
+                {/* Draw instructions to target place */}
                 {showDirection && (
                     <Polyline
                         coordinates={routes}
@@ -421,49 +445,64 @@ function MapScreen({ navigation }) {
                 }
             </MapView>
 
-            <View style={styles.dropdown}>
-                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                    <TextInput
-                        placeholder="Nhập vị trí bạn muốn đến"
-                        keyboardType="default"
-                        value={inputValue}
-                        onChangeText={handleInputChange}
-                        onPressIn={() => { setShowPredictions(true) }}
-                        style={{ padding: 10, fontSize: 14, width: '90%' }}
-                    />
-                    <Icon name="search" size={20} color="#2957C2" />
-                </View>
-                {
-                    showPredictions && (
-                        <ScrollView>
-                            {predictions.map((item, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    style={styles.predictions}
-                                    onPress={() => {
-                                        setShowPredictions(false);
-                                        setShowMarker(true);
-                                        console.log(item);
-                                        setPosLat(item.lat);
-                                        setPosLng(item.lon);
-                                        setChosen(true);
-                                    }}
-                                >
-                                    <Text key={index}>{item.name}</Text>
-                                </TouchableOpacity>
-                            ))}
-                            <TouchableOpacity
-                                onPress={() => { setShowPredictions(false) }}
-                                style={{ padding: 10, alignItems: 'flex-end' }}
-                            >
-                                <Text style={{ color: '#2957C2'}}>Đóng</Text>
-                            </TouchableOpacity>
-                        </ScrollView>
-                    )
-                }
-            </View>
+            {/*
+            // Places Autocompletes 
+             */}
+            <TouchableOpacity
+                style={styles.searchBtn}
+                onPress={() => {
+                    setShowSearchInput(true);
+                }}>
+                <Icon name="search" size={20} color="white" />
+            </TouchableOpacity>
+            {
+                showSearchInput && (
+                    <View style={styles.dropdown}>
+                        <View style={styles.searchBox}>
+                            <Icon name="search" size={20} color="#2957C2" />
+                            <TextInput
+                                placeholder="Nhập vị trí bạn muốn đến"
+                                keyboardType="default"
+                                value={inputValue}
+                                onChangeText={handleInputChange}
+                                onPressIn={() => { setShowPredictions(true) }}
+                                style={{ padding: 10, fontSize: 14, width: '90%' }}
+                            />
+                        </View>
+                        <TouchableOpacity
+                            onPress={() => { setShowSearchInput(false) }}
+                            style={{ padding: 10, alignItems: 'flex-end' }}
+                        >
+                            <Text style={{ color: '#2957C2' }}>Đóng</Text>
+                        </TouchableOpacity>
+                        {
+                            showPredictions && (
+                                <ScrollView>
+                                    {predictions.map((item, index) => (
+                                        <TouchableOpacity
+                                            key={index}
+                                            style={styles.predictions}
+                                            onPress={() => {
+                                                setShowPredictions(false);
+                                                setShowSearchInput(false);
+                                                setShowMarker(true);
+                                                setPosLat(item.lat);
+                                                setPosLng(item.lon);
+                                                setChosen(true);
+                                            }}
+                                        >
+                                            <Text key={index}>{item.name}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            )
+                        }
+                    </View>
 
+                )
+            }
 
+            {/* Current location button */}
             <TouchableOpacity
                 style={styles.locationBtn}
                 onPress={() => {
@@ -477,162 +516,214 @@ function MapScreen({ navigation }) {
                 }}>
                 <Icon name="location-arrow" size={20} color="white" />
             </TouchableOpacity>
+
+            {/* Callout for parkings' markers */}
             {show && (
                 <View style={styles.marker_callout}>
-                    <View style={{ display: 'flex', flexDirection: 'row' }}>
-                        <DynamicText
-                            text={pData.nameParking}
-                        />
+                    <Text style={styles.textCentered}>Thông tin</Text>
+                    <Image
+                        source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Tel_Aviv_parking_lot.jpg' }}
+                        resizeMode='cover'
+                        style={styles.parkingImage}
+                    />
+                    <DynamicText
+                        text={pData.nameParking}
+                    />
+                    <Text>{pData.address}</Text>
+                    <View style={styles.price}>
+                        <Text style={styles.textPurple}>{pData.price}</Text>
+                        <Text>Mỗi giờ</Text>
+                    </View>
+                    <View style={{ display: 'flex', flexDirection: 'row', gap: 12, justifyContent: 'center' }}>
                         <TouchableOpacity
-                            style={{ position: 'absolute', right: 5 }}
+                            style={styles.cancelBtn}
                             onPress={() => {
                                 setShow(false);
                             }}
                         >
-                            <Icon name="close" size={25} color="#2957C2" />
+                            <Text style={{ color: '#4448AE', fontWeight: 'bold' }}>Đóng</Text>
                         </TouchableOpacity>
+                        <LinearGradient
+                            colors={['#CEC9F2', '#B1B1F1', '#9C9FF0']}
+                            style={styles.cancelBtn}
+                        >
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setBooking(true);
+                                    setShow(false);
+                                }}
+                                style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <Text style={{ color: '#FFF', fontWeight: 'bold' }}>
+                                    Chi tiết</Text>
+                            </TouchableOpacity>
+                        </LinearGradient>
                     </View>
-                    <Text style={{ color: "#000", fontSize: 11 }} >Đang hoạt động</Text>
-                    <Text style={{ color: "#000", fontSize: 13, marginTop: 10 }}>{pData.price}VNĐ / 1 giờ</Text>
-                    <Text style={{ color: "#000", fontSize: 13 }}>{pData.slotLeft} chỗ trống</Text>
-                    <TouchableOpacity
-                        style={styles.bookingBtn}
-                        onPress={() => {
-                            setBooking(true);
-                            setShow(false);
-                        }}
-                    >
-                        <Text style={styles.text1}>Lựa chọn</Text>
-                    </TouchableOpacity>
                 </View>
             )
             }
+
+            <Modal
+                animationType='fade'
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    Alert.alert('Modal has been closed.');
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.textDark}>{messageType}</Text>
+                        <Text style={styles.textDarkRegular}>{message}</Text>
+                        <LinearGradient
+                            colors={['#CEC9F2', '#B1B1F1', '#9C9FF0']}
+                            style={styles.closeBtn}
+                        >
+                            <TouchableOpacity
+                                onPress={() => setModalVisible(!modalVisible)}
+                                style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <Text style={styles.textLight}>
+                                    Đóng</Text>
+                            </TouchableOpacity>
+                        </LinearGradient>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Booking Details */}
             {
                 booking && (
                     <View style={styles.bookingDetails}>
-                        {!userStatus ? (
-                            <View>
+                        <View style={styles.bookingDetails}>
+                            <View style={{ display: 'flex', flexDirection: 'row', gap: 16, alignItems: 'center' }}>
                                 <TouchableOpacity onPress={() => {
                                     setBooking(false);
                                 }}>
-                                    <Icon name="long-arrow-left" size={25} color="#2957C2" />
+                                    <Icon name="long-arrow-left" size={25} color="#4448AE" />
                                 </TouchableOpacity>
-                                <Text style={{ fontSize: 14, color: '#000', marginTop: 24 }}>Hoàn thiện yêu cầu đặt chỗ tại</Text>
-                                <Text style={{ fontSize: 16, color: '#000', marginTop: 8 }}>{pData.nameParking}</Text>
+                                <Text style={{ ...styles.textPurple, color: '#212121' }}>Thông tin đặt chỗ</Text>
+                            </View>
+                            <Text style={{ ...styles.textPurple, fontSize: 20, color: '#212121' }}>Lựa chọn ngày</Text>
+                            <View style={styles.dateTime}>
+                                <Text style={styles.dateTimeText}>{date.toLocaleDateString()}</Text>
                                 <TouchableOpacity
-                                    style={styles.bookingBtn}
                                     onPress={() => {
-                                        if (!parking) {
-                                            getCurrentDateTime();
+                                        setOpenDatePicker(true);
+                                    }}
+                                >
+                                    <Text style={{ color: '#212121', alignSelf: 'flex-end' }} >Chọn</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <DatePicker
+                                modal
+                                mode="date"
+                                open={openDatePicker}
+                                date={date}
+                                onConfirm={(date) => {
+                                    setOpenDatePicker(false)
+                                    setDate(date)
+                                    console.log(date.toLocaleDateString())
+                                }}
+                                onCancel={() => {
+                                    setOpenDatePicker(false);
+                                }}
+                            />
+                            <View style={styles.timePicker}>
+                                <View style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    <Text style={{ ...styles.textPurple, fontSize: 16, color: '#212121' }}>Giờ bắt đầu</Text>
+                                    <View style={{ ...styles.dateTime, width: 'auto' }}>
+                                        <Text style={styles.dateTimeText}>{timeCheckin.toLocaleTimeString()}</Text>
+                                        <TouchableOpacity
+                                            onPress={() => {
+                                                setOpenTimeInPicker(true);
+                                            }}
+                                        >
+                                            <Text style={{ color: '#2957c2' }} >Chọn</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <DatePicker
+                                        modal
+                                        mode="time"
+                                        open={openTimeInPicker}
+                                        date={timeCheckin}
+                                        onConfirm={(timeCheckin) => {
+                                            setOpenTimeInPicker(false)
+                                            setTimeCheckin(timeCheckin)
+                                            console.log(timeCheckin.toLocaleTimeString())
+                                        }}
+                                        onCancel={() => {
+                                            setOpenTimeInPicker(false)
+                                        }}
+                                    />
+                                </View>
+                                <View style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    <Text style={{ ...styles.textPurple, fontSize: 16, color: '#212121' }}>Giờ kết thúc</Text>
+                                    <View style={{ ...styles.dateTime, width: 'auto' }}>
+                                        <Text style={styles.dateTimeText}>{timeCheckout.toLocaleTimeString()}</Text>
+                                        <TouchableOpacity
+                                            onPress={() => {
+                                                setOpenTimeOutPicker(true);
+                                            }}
+                                        >
+                                            <Text style={{ color: '#2957c2' }}>Chọn</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <DatePicker
+                                        modal
+                                        mode="time"
+                                        open={openTimeOutPicker}
+                                        date={timeCheckout}
+                                        onConfirm={(timeCheckout) => {
+                                            setOpenTimeOutPicker(false)
+                                            setTimeCheckout(timeCheckout)
+                                            console.log(timeCheckout.toLocaleDateString())
+                                        }}
+                                        onCancel={() => {
+                                            setOpenTimeOutPicker(false)
+                                        }}
+                                    />
+                                </View>
+                            </View>
+                            <Text style={{ ...styles.textPurple, fontSize: 16, color: '#212121' }}>Tổng tiền</Text>
+                            <Text style={styles.textPurple}>20000 / 4 Tiếng</Text>
+                            <View style={{ display: 'flex', flexDirection: 'row', gap: 12, justifyContent: 'center' }}>
+                                <TouchableOpacity
+                                    style={styles.cancelBtn}
+                                    onPress={() => {
+                                        getCurrentDateTime();
+                                        setParking(pData.nameParking);
+                                        requestBooking();
+                                        setBooking(false);
+                                    }}
+                                >
+                                    <Text style={{ color: '#4448AE', fontWeight: 'bold' }}>Đặt ngay</Text>
+                                </TouchableOpacity>
+                                <LinearGradient
+                                    colors={['#CEC9F2', '#B1B1F1', '#9C9FF0']}
+                                    style={styles.cancelBtn}
+                                >
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            requestSchedule();
                                             setParking(pData.nameParking);
-                                            requestBooking();
-                                            setUserStatus(true);
-                                        } else {
-                                            alert('Bạn đang gửi xe nên không thể đặt chỗ')
-                                        }
-                                    }}
-                                >
-                                    <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Đặt ngay</Text>
-                                </TouchableOpacity>
-                                <Text style={{ fontSize: 14, color: '#000', marginTop: 24 }}>Đặt trước</Text>
-                                <Text style={{ fontSize: 14, color: '#000', marginTop: 12 }}>Bạn sẽ đỗ xe trong bao lâu</Text>
-                                <View style={styles.scheduleBooking}>
-                                    <Text style={{ color: '#000' }}>Từ</Text>
-                                    <Text style={{fontSize: 18 }}>{inDate.toLocaleString()}</Text>
-                                    <TouchableOpacity
-                                        onPress={() => {
-                                            setOpenPicker1(true);
+                                            setBooking(false);
                                         }}
+                                        style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}
                                     >
-                                        <Text style={{ color: '#2957c2'}} >Chọn</Text>
+                                        <Text style={{ color: '#FFF', fontWeight: 'bold' }}>
+                                            Lên lịch</Text>
                                     </TouchableOpacity>
-                                    <DatePicker
-                                        modal
-                                        open={openPicker1}
-                                        date={inDate}
-                                        onConfirm={(inDate) => {
-                                            setOpenPicker1(false)
-                                            setIndate(inDate)
-                                            console.log(inDate.toLocaleTimeString())
-                                        }}
-                                        onCancel={() => {
-                                            setOpenPicker1(false)
-                                        }}
-                                    />
-                                </View>
-                                <View style={styles.scheduleBooking}>
-                                    <Text style={{ color: '#000' }}>Đến</Text>
-                                    <Text style={{fontSize: 18 }}>{outDate.toLocaleString()}</Text>
-                                    <TouchableOpacity
-                                        onPress={() => {
-                                            setOpenPicker2(true);
-                                        }}
-                                    >
-                                        <Text style={{ color: '#2957c2'}}>Chọn</Text>
-                                    </TouchableOpacity>
-                                    <DatePicker
-                                        modal
-                                        open={openPicker2}
-                                        date={outDate}
-                                        onConfirm={(outDate) => {
-                                            setOpenPicker2(false)
-                                            setOutdate(outDate)
-                                            console.log(outDate.toLocaleDateString())
-                                        }}
-                                        onCancel={() => {
-                                            setOpenPicker2(false)
-                                        }}
-                                    />
-                                </View>
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        setUserStatus(true);
-                                        requestSchedule();
-                                    }}
-                                    style={styles.bookingBtn}
-                                >
-                                    <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Lên lịch</Text>
-                                </TouchableOpacity>
+                                </LinearGradient>
                             </View>
-                        ) : (
-                            <View style={{ alignItems: 'center', padding: 30 }}>
-                                <Icon name="check-circle" size={50} color='green' />
-                                <Text style={{ fontSize: 14, color: '#000', marginTop: 24 }}>Đặt chỗ thành công</Text>
-                                <Text style={{ fontSize: 14, color: '#000', }}>Vị trí đỗ xe của bạn là ô {slot}</Text>
-                                <TouchableOpacity
-                                    style={styles.bookingBtn}
-                                    onPress={() => {
-                                        cancelBooking();
-                                        setBooking(false);
-                                        setUserStatus(false);
-                                        setParking(null);
-                                    }}
-                                >
-                                    <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Hủy đặt chỗ</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={styles.bookingBtn}
-                                    onPress={() => {
-                                        getRouteFromApi();
-                                        setBooking(false);
-                                        setUserStatus(false);
-                                        setShowDirection(true);
-                                        setShowRoutes(true);
-                                        setShowParkingStatus(true);
-                                        mapViewRef.current?.fitToCoordinates([{ latitude: currentLatitude, longitude: currentLongtitude }, { latitude: desLat, longitude: desLng },], {
-                                            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-                                            animated: true,
-                                        });
-                                    }}
-                                >
-                                    <Text style={{ color: '#FFF', textTransform: 'uppercase' }}>Điều hướng tới bãi xe</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                        )}
+                        </View>
                     </View>
                 )
             }
+
+
+            {/* Display current parking'status */}
             {
                 showParkingStatus && (
                     <View style={styles.bookingStatusContainer}>
@@ -652,11 +743,13 @@ function MapScreen({ navigation }) {
                     </View>
                 )
             }
+
+            {/* Text Instructions */}
             {
                 showRoutes && (
                     <View style={styles.navigationContainer}>
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' }}>
-                            <Text style={{ fontSize: 14, color: '#000'}}>Đang điều hướng đến vị trí ...</Text>
+                            <Text style={{ fontSize: 14, color: '#000' }}>Đang điều hướng đến vị trí ...</Text>
                             <TouchableOpacity
                                 style={{ position: 'absolute', right: 10 }}
                                 onPress={() => {
@@ -684,7 +777,7 @@ function MapScreen({ navigation }) {
                                 }}
                                 style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}
                             >
-                                <Text style={{ color: '#2957C2'}}>Trở lại</Text>
+                                <Text style={{ color: '#2957C2' }}>Trở lại</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => {
@@ -702,7 +795,7 @@ function MapScreen({ navigation }) {
                                 }}
                                 style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}
                             >
-                                <Text style={{ color: '#2957C2'}}>Tiếp theo</Text>
+                                <Text style={{ color: '#2957C2' }}>Tiếp theo</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -720,13 +813,21 @@ const styles = StyleSheet.create({
     },
     dropdown: {
         position: 'absolute',
-        width: '90%',
-        marginLeft: 20,
-        height: 'auto',
-        top: 20,
+        width: '100%',
+        height: '100%',
+        zIndex: 1,
         backgroundColor: '#fff',
-        borderColor: '#000',
-        borderWidth: 1
+        padding: 24,
+    },
+    searchBox: {
+        paddingLeft: 20,
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 12,
+        borderWidth: 1,
+        borderColor: '#4448AE',
+        borderRadius: 10,
+        alignItems: 'center',
     },
     map: {
         ...StyleSheet.absoluteFillObject,
@@ -744,11 +845,24 @@ const styles = StyleSheet.create({
         bottom: 40,
         left: 80
     },
+    searchBtn: {
+        position: 'absolute',
+        width: 52,
+        height: 52,
+        backgroundColor: '#4448AE',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 100,
+        shadowColor: 'black',
+        shadowOpacity: 4,
+        top: 20,
+        right: 20,
+    },
     locationBtn: {
         position: 'absolute',
-        width: 40,
-        height: 40,
-        backgroundColor: '#2957C2',
+        width: 52,
+        height: 52,
+        backgroundColor: '#4448AE',
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 100,
@@ -757,42 +871,86 @@ const styles = StyleSheet.create({
         bottom: 50,
         right: 20,
     },
-    bookingBtn: {
-        width: '100%',
-        height: 50,
-        backgroundColor: '#2957C2',
+    cancelBtn: {
+        width: '45%',
+        height: 58,
+        backgroundColor: '#F1F2FF',
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 10
+        color: '#4448AE',
+        marginTop: 10,
+        borderRadius: 10,
     },
     bookingDetails: {
-        position: 'absolute',
-        top: 100,
-        left: 20,
-        width: '90%',
-        height: 'auto',
+        width: '100%',
+        height: '100%',
         backgroundColor: '#fff',
-        borderColor: '#000',
-        borderWidth: 1,
         display: 'flex',
-        padding: 10
+        flexDirection: 'column',
+        gap: 24,
+        padding: 10,
+    },
+    dateTime: {
+        backgroundColor: '#FAFAFA',
+        display: 'flex',
+        flexDirection: 'row',
+        borderRadius: 12,
+        width: '100%',
+        alignItems: 'center',
+        fontWeight: 'bold',
+        gap: 12,
+        padding: 16,
+    },
+    timePicker: {
+        display: 'flex', flexDirection: 'row', gap: 40, justifyContent: 'center'
+    },
+    dateTimeText: {
+        fontWeight: '500',
+        fontSize: 14,
+        color: '#212121',
+    },
+    price: {
+        width: '100%',
+        height: 'auto',
+        backgroundColor: '#F1F2FF',
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 16,
+        marginTop: 10,
     },
     text1: {
         color: 'white',
         fontSize: 18,
     },
+    textCentered: {
+        alignSelf: 'center',
+        color: '#212121',
+        fontWeight: 'bold',
+        fontSize: 21,
+    },
+    textPurple: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#4448AE'
+    },
+    parkingImage: {
+        width: '100%',
+        height: 182,
+        borderRadius: 10,
+        marginVertical: 24,
+    },
     marker_callout: {
         backgroundColor: '#fff',
         position: 'absolute',
-        width: '90%',
-        height: 226,
-        bottom: 20,
-        left: 20,
+        width: '100%',
+        height: 'auto',
+        bottom: 0,
         display: 'flex',
         flexDirection: 'column',
         padding: 30,
-        borderColor: '#000',
-        borderWidth: 1
+        borderTopLeftRadius: 40,
+        borderTopRightRadius: 40,
     },
     predictions: {
         height: 55,
@@ -831,7 +989,56 @@ const styles = StyleSheet.create({
         left: 20,
         display: 'flex',
         padding: 10
-    }
+    },
+    centeredView: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    modalView: {
+        display: 'flex',
+        width: '80%',
+        gap: 36,
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        padding: 24,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    closeBtn: {
+        width: '100%',
+        height: 48,
+        borderRadius: 10,
+    },
+    textLight: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        fontFamily: 'Urbanist-Regular'
+    },
+    textDark: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#212121',
+        fontFamily: 'Urbanist-Regular'
+    },
+    textDarkRegular: {
+        fontSize: 16,
+        color: '#212121',
+        fontFamily: 'Urbanist-Regular'
+    },
+    textSmall: {
+        fontSize: 14,
+        color: '#212121'
+    },
+
 });
 
 export default MapScreen;

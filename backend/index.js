@@ -62,6 +62,7 @@ app.patch('/update/:id',  async (req, res) => {
   }
   
   try {
+    console.log('Went here');
     const userId = req.params.id;
     await User.findOneAndUpdate({idUser: userId}, req.body, {new: true});
     return res.status(200).send({message: "Cập nhật thông tin tài khoản thành công"});

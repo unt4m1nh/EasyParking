@@ -11,12 +11,12 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
 import { AuthContext } from '../component/context';
-
+import { useUserState } from '../component/UserContext';
 function Profile({ navigation }) {
 
     const { signOut } = React.useContext(AuthContext);
-    const [apiData, setApiData] = useState(null);
     const [token, setToken] = useState(null);
+    const { userContext, setUserContext } = useUserState();
     const [showUpdate, setShowUpdate] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [showConfirmPopup, setShowConfirmPopup] = useState(false);
@@ -38,40 +38,30 @@ function Profile({ navigation }) {
             // Use the stored token for authentication
             setToken(storedToken);
         } else {
-            console.log('Retrieval failed');
             // Token not available or retrieval failed
         }
     });
 
-    const getUserInfo = () => {
-        var myHeaders = new Headers();
-        myHeaders.append("Authorization", "Bearer " + token);
-        var requestOptions = {
-            method: 'GET',
-            headers: myHeaders,
-            redirect: 'follow'
-        };
-
-        fetch(`${process.env.API_URL}/profile`, requestOptions)
-            .then(response => response.json())
-            .then(result => {
-                setApiData(result);
-            })
-            .catch(error => console.log('error', error));
-
-    }
+    const deleteToken = async (storedToken) => {
+        try {
+            await AsyncStorage.removeItem(storedToken);
+            console.log('Item deleted successfully');
+        } catch (error) {
+            console.error('Error deleting item:', error);
+        }
+    } 
 
     const updateUserInfo = () => {
-        if (apiData.email === '' && apiData.name === '' && apiData.phoneNumber === '' && apiData.plate === '') {
+        if (userContext.email === '' && userContext.name === '' && userContext.phoneNumber === '' && userContext.plate === '') {
             setMessageType('Lỗi');
             setMessage('Bạn cần nhập đủ thông tin');
             setModalVisible(true);
         } else {
             var raw = JSON.stringify({
-                "name": apiData.name,
-                "email": apiData.email,
-                "phoneNumber": apiData.phoneNumber,
-                "plate": apiData.plate,
+                "name": userContext.name,
+                "email": userContext.email,
+                "phoneNumber": userContext.phoneNumber,
+                "plate": userContext.plate,
             })
 
             var requestOptions = {
@@ -82,7 +72,7 @@ function Profile({ navigation }) {
                 body: raw
             };
 
-            fetch(`${process.env.API_URL}/update/${apiData.idUser}`, requestOptions)
+            fetch(`${process.env.LOCAL_IP_URL}/update/${userContext.idUser}`, requestOptions)
                 .then(response => response.json())
                 .then(result => {
                     setShowUpdate(false);
@@ -94,22 +84,6 @@ function Profile({ navigation }) {
         }
     }
 
-    const deleteToken = async (storedToken) => {
-        try {
-            await AsyncStorage.removeItem(storedToken);
-            console.log('Item deleted successfully');
-        } catch (error) {
-            console.error('Error deleting item:', error);
-        }
-    }
-
-    useEffect(() => {
-        getUserInfo();
-    }, [token])
-
-    useEffect(() => {
-        getUserInfo();
-    }, [showUpdate]);
 
     return (
         <View style={styles.background}>
@@ -155,8 +129,8 @@ function Profile({ navigation }) {
                                         style={styles.avatar}
                                     ></Image>
                                 </View>
-                                <Text style={styles.textTitle}>{apiData !== null ? apiData.name : 'Lỗi rồi'}</Text>
-                                <Text style={styles.textSmall}>{apiData !== null ? apiData.email : 'Lỗi rồi'}</Text>
+                                <Text style={styles.textTitle}>{userContext !== null ? userContext.name : 'Lỗi rồi'}</Text>
+                                <Text style={styles.textSmall}>{userContext !== null ? userContext.email : 'Lỗi rồi'}</Text>
                             </View>
                             <View style={styles.settings}>
                                 <TouchableOpacity style={styles.option}
@@ -283,23 +257,23 @@ function Profile({ navigation }) {
                             <View style={styles.updateForm}>
                                 <TextInput
                                     style={styles.input}
-                                    defaultValue={apiData.name}
-                                    onChangeText={(text) => setApiData({...apiData, name: text})}
+                                    defaultValue={userContext.name}
+                                    onChangeText={(text) => setUserContext({...userContext, name: text})}
                                 />
                                 <TextInput
                                     style={styles.input}
-                                    defaultValue={apiData.email}
-                                    onChangeText={(text) => setApiData({...apiData, email: text})}
+                                    defaultValue={userContext.email}
+                                    onChangeText={(text) => setUserContext({...userContext, email: text})}
                                 />
                                 <TextInput
                                     style={styles.input}
-                                    defaultValue={apiData.plate}
-                                    onChangeText={(text) => setApiData({...apiData, plate: text})}
+                                    defaultValue={userContext.plate}
+                                    onChangeText={(text) => setUserContext({...userContext, plate: text})}
                                 />
                                 <TextInput
                                     style={styles.input}
-                                    defaultValue={apiData.phoneNumber}
-                                    onChangeText={(text) => setApiData({...apiData, phoneNumber: text})}
+                                    defaultValue={userContext.phoneNumber}
+                                    onChangeText={(text) => setUserContext({...userContext, phoneNumber: text})}
                                 />
                             </View>
                         </View>
@@ -471,3 +445,4 @@ const styles = StyleSheet.create({
 
 
 export default Profile;
+

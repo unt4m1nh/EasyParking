@@ -22,13 +22,9 @@ const DynamicText = ({ text }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   text: {
     color: '#000',
-    fontSize: 16, // Default font size
+    fontSize: 24, // Default font size
     fontWeight: 'bold'
   },
 });
