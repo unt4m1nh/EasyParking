@@ -12,12 +12,14 @@ import { UserProvider } from '../component/UserContext';
 import MapScreen from './Map';
 import QrScreen from './Qr';
 import Profile from './Profile';
+import CameraScreen from './CameraScreen';
 
 const BottomNavigator = createBottomTabNavigator();
 
 const mapName = 'Bản đồ';
 const qrName = 'QR Code';
 const profileName = 'Tài khoản';
+const cameraName = 'Camera';
 
 function AppNavigator() {
   const [userToken, setUserToken] = React.useState(null);
@@ -90,16 +92,18 @@ function AppNavigator() {
                       let rn = route.name;
   
                       if (rn === mapName) {
-                        iconName = focused ? "map" : "map"
+                        iconName = "map"
                         colorName = focused ? "#4448AE" : "#b7bbc3"
                       } else if (rn === qrName) {
-                        iconName = focused ? "qrcode" : "qrcode"
+                        iconName = "qrcode"
                         colorName = focused ? "#4448AE" : "#b7bbc3"
                       } else if (rn === profileName) {
-                        iconName = focused ? "user" : "user"
+                        iconName = "user"
+                        colorName = focused ? "#4448AE" : "#b7bbc3"
+                      } else if (rn === cameraName) {
+                        iconName = "camera"
                         colorName = focused ? "#4448AE" : "#b7bbc3"
                       }
-  
                       return <Icon name={iconName} size={23} color={colorName} />
                     },
                     tabBarLabel: ({ focused }) => (
@@ -112,6 +116,7 @@ function AppNavigator() {
                   <BottomNavigator.Screen name={mapName} component={MapScreen} options={{ headerShown: false }} />
                   <BottomNavigator.Screen name={qrName} component={QrScreen} options={{ headerShown: false }} />
                   <BottomNavigator.Screen name={profileName} component={Profile} options={{ headerShown: false }} />
+                  <BottomNavigator.Screen name={cameraName} component={CameraScreen} options={{ headerShown: false }} />
                 </BottomNavigator.Navigator>
               ) :
               <RootStackScreen />

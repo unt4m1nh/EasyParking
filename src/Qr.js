@@ -16,47 +16,27 @@ function QrScreen({ navigation }) {
     const { userContext, setUserContext } = useUserState();
 
     const [qrData, setQRData] = useState('1');
-    const [showQrCode, setShowQrCode] = useState(false)
+    const [showQrCode, setShowQrCode] = useState(false);
+    const [isGenerated, setIsGenerated] = useState(false);
 
-    const testData = [
-        {
-            id: 1,
-            prop: "Tên",
-            value: "Nguyễn Văn A"
-        }, {
-            id: 2,
-            prop: "Phương tiện",
-            value: "Lexus RX350"
-        }, {
-            id: 3,
-            prop: "Bãi đỗ xe",
-            value: "Landmark 72"
-        }, {
-            id: 4,
-            prop: "Vị tí ô đỗ",
-            value: "A05"
-        }, {
-            id: 5,
-            prop: "Thời gian",
-            value: "4 tiéng"
-        }, {
-            id: 6,
-            prop: "Ngày",
-            value: "22/12/2022"
-        }, {
-            id: 7,
-            prop: "Giờ",
-            value: "09.00 - 13.00"
-        }, {
-            id: 8,
-            prop: "Điện thoại",
-            value: "0123456789"
-        }
-    ]
+    const [session, setSession] = useState({});
 
-    console.log('Đây là User State: ', userContext);
+    // function to fetch session data
+    const sessionData = () => {
+        var requestOptions = {
+            method: 'GET',
+            redirect: 'follow'
+        };
 
-    function generateRandomString(length) {
+        fetch(`${process.env.LOCAL_IP_URL}/getSession/${userContext.idUser}`, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+                setSession(result)
+            })
+            .catch(error => console.log(error));
+    }
+    const generateRandomString = (length) => {
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result = '';
 
@@ -77,9 +57,17 @@ function QrScreen({ navigation }) {
     }
 
     useEffect(() => {
-        if (userContext.booking === 0) {
+        if (userContext.booking === 1 && !isGenerated) {
             generateQRCode();
+            setIsGenerated(true);
+        } else if (userContext.booking === 0) {
+            setIsGenerated(false);
+            setShowQrCode(false);
         }
+    }, [userContext]);
+
+    useEffect(() => {
+        sessionData();
     }, [userContext]);
 
     return (
@@ -101,14 +89,38 @@ function QrScreen({ navigation }) {
                             <QRCode value={qrData} size={256} />
                         </View>
                         <View style={styles.infoContainer}>
-                            {
+                            {/* {
                                 testData.map((data) => (
                                     <View key={data.id} style={styles.info}>
                                         <Text style={styles.text}>{data.prop}</Text>
                                         <Text style={styles.textBold}>{data.value}</Text>
                                     </View>
                                 ))
-                            }
+                            } */}
+                            <View style={styles.info}>
+                                <Text style={styles.text}>Chủ phương tiện</Text>
+                                <Text style={styles.textBold}>{session?.name ?? 'Đang tải ...'}</Text>
+                            </View>
+                            <View style={styles.info}>
+                                <Text style={styles.text}>Tên phương tiện</Text>
+                                <Text style={styles.textBold}>{session?.vehicle ?? 'Đang tải ...'}</Text>
+                            </View>
+                            <View style={styles.info}>
+                                <Text style={styles.text}>Tên bãi xe</Text>
+                                <Text style={styles.textBold}>{session?.parking ?? 'Đang tải ...'}</Text>
+                            </View>
+                            <View style={styles.info}>
+                                <Text style={styles.text}>Ví trí ô đỗ</Text>
+                                <Text style={styles.textBold}>{session?.slot ?? 'Đang tải ...'}</Text>
+                            </View>
+                            <View style={styles.info}>
+                                <Text style={styles.text}>Thời gian</Text>
+                                <Text style={styles.textBold}>{session?.timeBooking ?? 'Đang tải ...'}</Text>
+                            </View>
+                            <View style={styles.info}>
+                                <Text style={styles.text}>Ngày</Text>
+                                <Text style={styles.textBold}>{session?.date ?? 'Đang tải ...'}</Text>
+                            </View>
                         </View>
                     </View>
                 )

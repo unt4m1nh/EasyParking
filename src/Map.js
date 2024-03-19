@@ -166,10 +166,14 @@ function MapScreen({ navigation }) {
 
     const requestBooking = () => {
         var datetime = getCurrentDateTime();
+        var dateSplit = datetime.split(' ');
+        console.log(dateSplit);
         var requestBody = {
+            'Username': userContext.name,
             'Parking': pData.nameParking,
-            'User': userContext.idUser,
-            'TimeBooking': datetime
+            'UserId': userContext.idUser,
+            'TimeBooking': dateSplit[1],
+            'Date': dateSplit[0],
         }
         var requestOptions = {
             method: 'POST',

@@ -5,6 +5,8 @@ const sendMail = require("./routes/sendVerificationEmail.js");
 const checkCode = require("./routes/checkCode.js");
 const resetPassword = require("./routes/resetPassword.js");
 const requireToken = require("./Middlewares/AuthTokenRequired.js");
+const getSession = require("./routes/getSession.js");
+
 const Parking = require('./models/Parking.js')
 require("./db.js");
 
@@ -26,6 +28,7 @@ app.use(authRoutes);
 app.use(sendMail);
 app.use(checkCode);
 app.use(resetPassword);
+app.use(getSession);
 
 app.get('/', requireToken, (req, res) => {
   console.log(req.user);
