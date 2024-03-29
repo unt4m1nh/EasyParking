@@ -5,79 +5,99 @@ import {
     TextInput,
     TouchableOpacity,
     useColorScheme,
-    Image,
+    Dimensions,
     Modal
 } from 'react-native'
-//import { useCameraPermission, useCameraDevice, Camera } from 'react-native-vision-camera';
+import { useCameraPermission, useCameraDevice, Camera, useFrameProcessor, runAtTargetFps } from 'react-native-vision-camera';
+import { useSharedValue } from 'react-native-worklets-core';
 import LinearGradient from 'react-native-linear-gradient';
-
+import { crop } from 'vision-camera-cropper'
 import { io } from "socket.io-client"
 
-
 function CameraScreen({ navigation }) {
+    const deviceWidth = Dimensions.get('window').width;
+    const deviceHeight = Dimensions.get('screen').height;
+    const device = useCameraDevice('back');
+    if (device == null) return <Text>No device found !</Text>
     // Hooks API granting CAMERA permission
-    //const { hasPermission, requestPermission } = useCameraPermission();
+    const { hasPermission, requestPermission } = useCameraPermission();
     // Setting up device camera
-    //const device = useCameraDevice('back');
-    // if (device == null) return <NoCameraDeviceError />
+    // Request Camera Permission from Android system
+    useEffect(() => {
+        if (!hasPermission) {
+            requestPermission();
+        }
+    }, [hasPermission]);
 
-    const cameraRef = useRef(null);
+
     const [message, setMessage] = useState(null);
     const [messageType, setMessageType] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const frameData = useSharedValue([1, 2]);
+    const [frameValue, setFrameValue] = useState(frameData.value);
     const theme = useColorScheme();
 
-    // Request Camera Permission from Android system
-    // useEffect(() => {
-    //     if (!hasPermission) {
-    //         requestPermission();
-    //     }
-    // }, [hasPermission]);
-
     // Connect socket
+
     useEffect(() => {
-        // Socket variables
-        const socket = io(process.env.SOCKET_IP);
+        const socket = io('http://10.22.5.45:5000', {
+            transports: ['websocket']
+        });
+        socket.on('connect', () => {
+            console.log('Connected', socket.connected);
+        })
+
+        socket.on("connect_error", (err) => {
+            console.log(`connect_error due to ${err.message}`);
+        });
+
+        socket.emit("hello");
+        socket.emit("hello");
+        socket.emit("hello");
+        let sendFame = setInterval(() => {
+            console.log('Frame is sent');
+            // setFrameValue(frameData.value);
+            console.log(frameData.value);
+            socket.emit('frame', {
+                'data': frameData.value
+            });
+        }, 2000);
+        socket.on('response', (data) => {
+            console.log('Result is received');
+            console.log('Hello', data);
+        });
 
         return () => {
-            if (socket) {
-                socket.disconnect();
-            }
+            socket.disconnect();
+            clearInterval(sendFame);
         }
     }, []);
 
-    // Function to send video data
-    // const sendVideoData = async () => {
-    //     if (cameraRef.current) {
-    //         // Capture image from camera
-    //         const options = { quality: 0.5, base64: true };
-    //         const data = await cameraRef.current.takePhoto(options);
-
-    //         // Send image data to server
-    //         if (socket) {
-    //             socket.emit('Hello');
-    //             socket.emit('image', data.base64);
-    //         }
-    //     }
-    // }
-
-    // const frameProcessor = useFrameProcessor(frame => {
-    //     'worklet'
-    //     console.log('A new frame arrived')
-    //     //console.log(`Frame: ${frame.width} ${frame.height} ${frame.pixelFormat}`);
-    // }, [])
-
-
-    // if (!device) {
-    //     return (
-    //         <Text>Device Camera Not Found !</Text>
-    //     )
-    // }
+    const frameProcessor = useFrameProcessor((frame) => {
+        'worklet'
+        const cropRegion = {
+            left: 0,
+            top: 0,
+            width: 100,
+            height: 100,
+        }
+        const result = crop(frame, { cropRegion: cropRegion, includeImageBase64: true, saveAsFile: false });
+        // console.log(result.base64);
+        frameData.value = result;
+        // console.log(frame.width);
+    }, []);
 
     return (
         <View style={styles.background}>
             {/* Camera View */}
-        
+
+            <Camera
+                style={StyleSheet.absoluteFill}
+                device={device}
+                isActive={true}
+                frameProcessor={frameProcessor}
+            />
+
 
             {/* Modal View */}
             <Modal
@@ -270,4 +290,5 @@ const styles = StyleSheet.create({
         resizeMode: 'contain'
     },
 });
+
 export default CameraScreen;

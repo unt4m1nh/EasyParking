@@ -89,8 +89,8 @@ function MapScreen({ navigation }) {
     const edgePaddingValue = 70;
 
     //Functions
-    Tts.setDefaultLanguage('vi-VN');
-    Tts.setDefaultVoice('vi-VN-language');
+    // Tts.setDefaultLanguage('vi-VN');
+    // Tts.setDefaultVoice('vi-VN-language');
 
     const retrieveToken = async () => {
         try {
