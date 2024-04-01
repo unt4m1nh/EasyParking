@@ -16,7 +16,7 @@ import { io } from "socket.io-client"
 
 function CameraScreen({ navigation }) {
     const deviceWidth = Dimensions.get('window').width;
-    const deviceHeight = Dimensions.get('screen').height;
+    const deviceHeight = Dimensions.get('window').height;
     const device = useCameraDevice('back');
     if (device == null) return <Text>No device found !</Text>
     // Hooks API granting CAMERA permission
@@ -40,7 +40,7 @@ function CameraScreen({ navigation }) {
     // Connect socket
 
     useEffect(() => {
-        const socket = io('http://10.22.5.45:5000', {
+        const socket = io('http://192.168.1.9:5000', {
             transports: ['websocket']
         });
         socket.on('connect', () => {
@@ -50,16 +50,17 @@ function CameraScreen({ navigation }) {
         socket.on("connect_error", (err) => {
             console.log(`connect_error due to ${err.message}`);
         });
-
+        console.log(deviceWidth);
+        console.log(deviceHeight);
         socket.emit("hello");
         socket.emit("hello");
         socket.emit("hello");
         let sendFame = setInterval(() => {
             console.log('Frame is sent');
             // setFrameValue(frameData.value);
-            console.log(frameData.value);
+            console.log(frameData.value.base64);
             socket.emit('frame', {
-                'data': frameData.value
+                'data': frameData.value.base64
             });
         }, 2000);
         socket.on('response', (data) => {

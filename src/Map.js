@@ -183,7 +183,8 @@ function MapScreen({ navigation }) {
             body: JSON.stringify(requestBody)
         };
         // const url = 'https://server-iot-myjn.onrender.com/app2/reservation';
-        const url = `${process.env.LOCAL_IP_URL_BOOKING}/app2/reservation`;
+        console.log(process.env.LOCAL_IP_URL_BOOKING);
+        const url = `https://server-iot-sroq.onrender.com/app2/reservation`;
         fetch(url, requestOptions)
             .then(response => {
                 if (response.ok) {
@@ -270,6 +271,7 @@ function MapScreen({ navigation }) {
         };
         const apiKey = 'ae0534df26a0484f9977c8dbadfc05e5';
         const url = `https://api.geoapify.com/v1/routing?waypoints=${currentLatitude},${currentLongtitude}|${desLat},${desLng}&mode=drive&apiKey=ae0534df26a0484f9977c8dbadfc05e5`;
+        console.log(url)
         fetch(url, requestOptions)
             .then(response => response.json())
             .then(result => {
@@ -290,7 +292,6 @@ function MapScreen({ navigation }) {
                 const duration = result.features[0].properties.time / 60;
                 setDistance(distance.toFixed(2));
                 setDuration(duration.toFixed(2));
-                //Tts.speak(instructionsArray[0]);
             })
             .catch(error => console.log('error', error));
     }
@@ -696,10 +697,17 @@ function MapScreen({ navigation }) {
                                 <TouchableOpacity
                                     style={styles.cancelBtn}
                                     onPress={() => {
+                                        getRouteFromApi();
                                         getCurrentDateTime();
                                         setParking(pData.nameParking);
                                         requestBooking();
                                         setBooking(false);
+                                        setShowDirection(true);
+                                        setShowRoutes(true);
+                                        mapViewRef.current?.fitToCoordinates([{ latitude: currentLatitude, longitude: currentLongtitude }, { latitude: desLat, longitude: desLng },], {
+                                            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+                                            animated: true,
+                                        });
                                     }}
                                 >
                                     <Text style={{ color: '#4448AE', fontWeight: 'bold' }}>Đặt ngay</Text>
