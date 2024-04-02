@@ -10,6 +10,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useUserState } from '../component/UserContext';
+import LinearGradient from 'react-native-linear-gradient';
 
 function QrScreen({ navigation }) {
 
@@ -30,7 +31,7 @@ function QrScreen({ navigation }) {
             redirect: 'follow'
         };
 
-        fetch(`https://ep-app-server.onrender.com/getSession/${userContext.idUser}`, requestOptions)
+        fetch(`${process.env.API_URL}/getSession/${userContext.idUser}`, requestOptions)
             .then(response => response.json())
             .then(result => {
                 console.log(result);
@@ -41,7 +42,7 @@ function QrScreen({ navigation }) {
 
     const cancelBooking = () => {
         var requestBody = {
-            'User': id,
+            'User': userContext.idUser,
         }
         var requestOptions = {
             method: 'POST',
@@ -50,7 +51,8 @@ function QrScreen({ navigation }) {
             },
             body: JSON.stringify(requestBody)
         };
-        const url = `${process.env.API_URL}/app3/cancel`;
+        console.log(process.env.URL_BOOKING);
+        const url = `${process.env.URL_BOOKING}/app3/cancel`;
         fetch(url, requestOptions)
             .then(response => {
                 if (response.ok) {
@@ -242,10 +244,7 @@ const styles = StyleSheet.create({
         color: '#212121'
     },
     updateBtn: {
-        position: 'fixed',
-        left: '5%',
-        bottom: '15%',
-        width: '90%',
+        width: '100%',
         height: 48,
         borderRadius: 10,
     },
