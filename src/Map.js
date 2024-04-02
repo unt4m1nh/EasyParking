@@ -121,7 +121,7 @@ function MapScreen({ navigation }) {
             redirect: 'follow'
         };
 
-        fetch("https://ep-app-server.onrender.com/profile", requestOptions)
+        fetch(`${process.env.API_URL}/profile`, requestOptions)
             .then(response => response.json())
             .then(result => {
                 setUserContext(result);
@@ -182,9 +182,7 @@ function MapScreen({ navigation }) {
             },
             body: JSON.stringify(requestBody)
         };
-        // const url = 'https://server-iot-myjn.onrender.com/app2/reservation';
-        console.log(process.env.LOCAL_IP_URL_BOOKING);
-        const url = `https://server-iot-sroq.onrender.com/app2/reservation`;
+        const url = `${process.env.URL_BOOKING}/app2/reservation`;
         fetch(url, requestOptions)
             .then(response => {
                 if (response.ok) {
@@ -218,36 +216,7 @@ function MapScreen({ navigation }) {
             },
             body: JSON.stringify(requestBody)
         };
-        const url = 'https://server-iot-myjn.onrender.com/app1/booking';
-        fetch(url, requestOptions)
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Yêu cầu thất bại.');
-                }
-            })
-            .then(data => {
-                console.log('Yêu cầu thành công:');
-                console.log(data);
-            })
-            .catch(error => {
-                console.error('Lỗi:', error);
-            });
-    }
-
-    const cancelBooking = () => {
-        var requestBody = {
-            'User': id,
-        }
-        var requestOptions = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        };
-        const url = 'https://server-iot-myjn.onrender.com/app3/cancel';
+        const url = `${process.env.URL_BOOKING}/app1/booking`
         fetch(url, requestOptions)
             .then(response => {
                 if (response.ok) {
@@ -302,7 +271,7 @@ function MapScreen({ navigation }) {
             redirect: 'follow'
         };
 
-        fetch("https://ep-app-server.onrender.com/parking", requestOptions)
+        fetch(`${process.env.API_URL}/parking`, requestOptions)
             .then(response => response.text())
             .then(result => console.log(result))
             .catch(error => console.log(error));

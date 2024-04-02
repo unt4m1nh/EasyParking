@@ -2,7 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import {
     Text, View,
     StyleSheet,
-    useColorScheme
+    useColorScheme,
+    Touchable,
+    TouchableOpacity
 } from 'react-native'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -28,7 +30,7 @@ function QrScreen({ navigation }) {
             redirect: 'follow'
         };
 
-        fetch(`${process.env.LOCAL_IP_URL}/getSession/${userContext.idUser}`, requestOptions)
+        fetch(`https://ep-app-server.onrender.com/getSession/${userContext.idUser}`, requestOptions)
             .then(response => response.json())
             .then(result => {
                 console.log(result);
@@ -36,6 +38,36 @@ function QrScreen({ navigation }) {
             })
             .catch(error => console.log(error));
     }
+
+    const cancelBooking = () => {
+        var requestBody = {
+            'User': id,
+        }
+        var requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        };
+        const url = `${process.env.API_URL}/app3/cancel`;
+        fetch(url, requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Yêu cầu thất bại.');
+                }
+            })
+            .then(data => {
+                console.log('Yêu cầu thành công:');
+                console.log(data);
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+            });
+    }
+
     const generateRandomString = (length) => {
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result = '';
@@ -122,6 +154,20 @@ function QrScreen({ navigation }) {
                                 <Text style={styles.textBold}>{session?.date ?? 'Đang tải ...'}</Text>
                             </View>
                         </View>
+                        <LinearGradient
+                            colors={['#CEC9F2', '#B1B1F1', '#9C9FF0']}
+                            style={styles.updateBtn}
+                        >
+                            <TouchableOpacity
+                                onPress={() => {
+                                    cancelBooking();
+                                }}
+                                style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <Text style={styles.textLight}>
+                                    Hủy đặt chỗ</Text>
+                            </TouchableOpacity>
+                        </LinearGradient>
                     </View>
                 )
             }
@@ -158,6 +204,50 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#212121',
         fontWeight: 'bold',
+    },   
+    textTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#212121'
+    },
+    textLarge: {
+        fontSize: 18,
+        color: '#424242',
+        fontWeight: '600',
+    },
+    textLargeRed: {
+        fontSize: 18,
+        color: '#F75555',
+        fontWeight: '600',
+    },
+    textLight: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        fontFamily: 'Urbanist-Regular'
+    },
+    textDark: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#212121',
+        fontFamily: 'Urbanist-Regular'
+    },
+    textDarkRegular: {
+        fontSize: 16,
+        color: '#212121',
+        fontFamily: 'Urbanist-Regular'
+    },
+    textSmall: {
+        fontSize: 14,
+        color: '#212121'
+    },
+    updateBtn: {
+        position: 'fixed',
+        left: '5%',
+        bottom: '15%',
+        width: '90%',
+        height: 48,
+        borderRadius: 10,
     },
     infoContainer: {
         width: '90%',

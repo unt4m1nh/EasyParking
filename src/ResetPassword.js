@@ -42,7 +42,7 @@ function ResetPassword({ navigation }) {
             setModalVisible(true);
             return;
         } else {
-            fetch(`${process.env.LOCAL_IP_URL}/resetPassword`, {
+            fetch(`${process.env.API_URL}/resetPassword`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

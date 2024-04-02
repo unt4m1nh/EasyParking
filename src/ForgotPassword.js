@@ -34,7 +34,7 @@ function ForgotPassword({ navigation }) {
             setModalVisible(true);
             return;
         } else {
-            fetch(`${process.env.LOCAL_IP_URL}/sendResetPassword`, {
+            fetch(`${process.env.API_URL}/sendResetPassword`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -73,7 +73,7 @@ function ForgotPassword({ navigation }) {
             for (let i = 0; i < code.length; i++) {
                 finalCode += code[i];
             }
-            fetch(`${process.env.LOCAL_IP_URL}/checkResetCode`, {
+            fetch(`${process.env.API_URL}/checkResetCode`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -72,7 +72,7 @@ function Profile({ navigation }) {
                 body: raw
             };
 
-            fetch(`${process.env.LOCAL_IP_URL}/update/${userContext.idUser}`, requestOptions)
+            fetch(`${process.env.API_URL}/update/${userContext.idUser}`, requestOptions)
                 .then(response => response.json())
                 .then(result => {
                     setShowUpdate(false);
