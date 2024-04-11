@@ -87,11 +87,6 @@ function MapScreen({ navigation }) {
 
     //Fit screen values
     const edgePaddingValue = 70;
-
-    //Functions
-    // Tts.setDefaultLanguage('vi-VN');
-    // Tts.setDefaultVoice('vi-VN-language');
-
     const retrieveToken = async () => {
         try {
             const authToken = await AsyncStorage.getItem('authToken');
@@ -273,7 +268,7 @@ function MapScreen({ navigation }) {
 
         fetch(`${process.env.API_URL}/parking`, requestOptions)
             .then(response => response.text())
-            .then(result => console.log(result))
+            .then(result => console.log('Parking data fetched successfully !'))
             .catch(error => console.log(error));
     }
 
@@ -307,16 +302,16 @@ function MapScreen({ navigation }) {
     const getLocation = () => {
         Geolocation.getCurrentPosition(
             (position) => {
-                console.log(position);
                 setCurrentLatitude(position.coords.latitude);
                 setCurrentLongtitude(position.coords.longitude);
             },
             (error) => {
                 // See error code charts below.
                 console.log(error.code, error.message);
+                return error;
             },
             { enableHighAccuracy: true, timeout: 2000, maximumAge: 10000 }
-        )
+        );
     }
 
     if (chosen) {
@@ -332,8 +327,14 @@ function MapScreen({ navigation }) {
     }
 
     useEffect(() => {
-        callFromBackEnd();
-        getLocation();
+        let reloadPosition = setInterval(() => {
+            callFromBackEnd();
+            getLocation();
+        }, 2000)
+
+        return () => {
+            clearInterval(reloadPosition);
+        }
     }, []);
 
     return (
@@ -465,7 +466,7 @@ function MapScreen({ navigation }) {
                                                 setChosen(true);
                                             }}
                                         >
-                                            <Text key={index}>{item.name}</Text>
+                                            <Text style={styles.textDarkRegular} key={index}>{item.name}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </ScrollView>
@@ -480,6 +481,7 @@ function MapScreen({ navigation }) {
             <TouchableOpacity
                 style={styles.locationBtn}
                 onPress={() => {
+                    getLocation();
                     mapViewRef.current?.animateToRegion({
                         latitude: currentLatitude,
                         longitude: currentLongtitude,
@@ -506,7 +508,7 @@ function MapScreen({ navigation }) {
                     <Text>{pData.address}</Text>
                     <View style={styles.price}>
                         <Text style={styles.textPurple}>{pData.price}</Text>
-                        <Text>Mỗi giờ</Text>
+                        <Text style={styles.textDarkRegular}>Mỗi giờ</Text>
                     </View>
                     <View style={{ display: 'flex', flexDirection: 'row', gap: 12, justifyContent: 'center' }}>
                         <TouchableOpacity
@@ -730,7 +732,7 @@ function MapScreen({ navigation }) {
                 showRoutes && (
                     <View style={styles.navigationContainer}>
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' }}>
-                            <Text style={{ fontSize: 14, color: '#000' }}>Đang điều hướng đến vị trí ...</Text>
+                            <Text style={styles.textDark}>Đang điều hướng đến vị trí ...</Text>
                             <TouchableOpacity
                                 style={{ position: 'absolute', right: 10 }}
                                 onPress={() => {
@@ -744,12 +746,12 @@ function MapScreen({ navigation }) {
                         </View>
                         <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', gap: 5 }}>
                             <Icon name="road" size={16} color="#2957C2" />
-                            <Text style={{ marginRight: 10 }}>{distance} km</Text>
+                            <Text style={styles.textDarkRegular}>{distance} km</Text>
                             <Icon name="clock-o" size={16} color="#2957C2" />
-                            <Text>{duration} phút</Text>
+                            <Text style={styles.textDarkRegular}>{duration} phút</Text>
                         </View>
                         <View style={{ height: 70, alignItems: 'center', justifyContent: 'center' }}>
-                            <Text style={{ color: '#000', fontSize: 14 }}>{instructionsArray[currentIndex]}</Text>
+                            <Text style={styles.textDarkRegular}>{instructionsArray[currentIndex]}</Text>
                         </View>
                         <View style={{ display: 'flex', flexDirection: 'row' }}>
                             <TouchableOpacity
@@ -758,7 +760,7 @@ function MapScreen({ navigation }) {
                                 }}
                                 style={{ width: '50%', alignItems: 'center', justifyContent: 'center' }}
                             >
-                                <Text style={{ color: '#2957C2' }}>Trở lại</Text>
+                                <Text style={{...styles.textDark, color: '#4448AE'}}>Trở lại</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => {
@@ -934,7 +936,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 40,
     },
     predictions: {
-        height: 55,
+        height: 'auto',
         padding: 10,
         color: '#000'
     },

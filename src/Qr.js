@@ -41,8 +41,10 @@ function QrScreen({ navigation }) {
     }
 
     const cancelBooking = () => {
+        console.log(session.sessionId);
         var requestBody = {
             'User': userContext.idUser,
+            'sessionId': session.sessionId
         }
         var requestOptions = {
             method: 'POST',
@@ -114,7 +116,7 @@ function QrScreen({ navigation }) {
         }}>
             {
                 !showQrCode ? (
-                    <Text>Mã QR chỉ có thể tạo khi bạn đã đặt chỗ</Text>
+                    <Text style={styles.textBold}>Mã QR chỉ có thể tạo khi bạn đã đặt chỗ</Text>
                 ) : (
                     <View style={styles.container}>
                         <Text style={styles.text}>Hãy đưa mã QR này trước máy Scan
@@ -246,6 +248,7 @@ const styles = StyleSheet.create({
     updateBtn: {
         width: '100%',
         height: 48,
+        margin: 16,
         borderRadius: 10,
     },
     infoContainer: {

@@ -107,7 +107,8 @@ function AppNavigator() {
                       return <Icon name={iconName} size={23} color={colorName} />
                     },
                     tabBarLabel: ({ focused }) => (
-                      <Text style={{ color: focused ? '#4448AE' : 'grey', fontSize: 12 }}>
+                      <Text style={{ color: focused ? '#4448AE' : 'grey', fontSize: 12
+                      , fontWeight: 500 }}>
                         {route.name}
                       </Text>
                     )
