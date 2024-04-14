@@ -24,6 +24,12 @@ const sessionSchema = new mongoose.Schema({
     },
     status: {
         type: Number
+    },
+    payment: {
+        type: Number
+    },
+    paymentStatus: {
+        type: Number
     }
 }, {collection: 'session'})
 

@@ -42,7 +42,7 @@ function CameraFeature() {
     // Connect socket
 
     useEffect(() => {
-        const socket = io('http://192.168.1.3:5000', {
+        const socket = io('http://18.141.224.245:5000', {
             transports: ['websocket']
         });
         socket.on('connect', () => {

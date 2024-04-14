@@ -143,7 +143,7 @@ function Profile({ navigation }) {
                                     ></Image>
                                     <Text style={styles.textLarge}>Chỉnh sửa hồ sơ</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.option}>
+                                <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('PaymentScreen')}>
                                     <Image
                                         source={require("../assets/icons/profile-wallet.png")}
                                         style={styles.icon}

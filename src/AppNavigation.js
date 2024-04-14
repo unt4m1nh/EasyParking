@@ -12,6 +12,7 @@ import { UserProvider } from '../component/UserContext';
 import MapScreen from './Map';
 import QrScreen from './Qr';
 import Profile from './Profile';
+import ProfileStackScreen from './ProfileStackScreen';
 import CameraScreen from './CameraScreen';
 
 const BottomNavigator = createBottomTabNavigator();
@@ -116,7 +117,7 @@ function AppNavigator() {
                 >
                   <BottomNavigator.Screen name={mapName} component={MapScreen} options={{ headerShown: false }} />
                   <BottomNavigator.Screen name={qrName} component={QrScreen} options={{ headerShown: false }} />
-                  <BottomNavigator.Screen name={profileName} component={Profile} options={{ headerShown: false }} />
+                  <BottomNavigator.Screen name={profileName} component={ProfileStackScreen} options={{ headerShown: false }} />
                   <BottomNavigator.Screen name={cameraName} component={CameraScreen} options={{ headerShown: false }} />
                 </BottomNavigator.Navigator>
               ) :
