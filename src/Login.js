@@ -14,7 +14,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CheckBox from '@react-native-community/checkbox';
 import LinearGradient from 'react-native-linear-gradient';
 import { AuthContext } from '../component/context';
-import { API_URL} from "@env"
 
 
 function Login({ navigation }) {
@@ -211,7 +210,7 @@ function Login({ navigation }) {
                 </TouchableOpacity>
             </View>
             <View style={styles.rememberBtn}>
-                <Text style={{ color: '#616161' }}>Bạn chưa có tài khoản ?</Text>
+                <Text style={styles.textDark}>Bạn chưa có tài khoản ?</Text>
                 <TouchableOpacity
                     onPress={() => navigation.navigate('SignUpScreen')}
                 >
