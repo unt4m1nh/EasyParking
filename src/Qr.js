@@ -7,7 +7,6 @@ import {
     TouchableOpacity
 } from 'react-native'
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useUserState } from '../component/UserContext';
 import LinearGradient from 'react-native-linear-gradient';

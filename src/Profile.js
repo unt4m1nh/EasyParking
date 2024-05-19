@@ -150,27 +150,6 @@ function Profile({ navigation }) {
                                     ></Image>
                                     <Text style={styles.textLarge}>Thanh toán</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.option}>
-                                    <Image
-                                        source={require("../assets/icons/profile-notification.png")}
-                                        style={styles.icon}
-                                    ></Image>
-                                    <Text style={styles.textLarge}>Thông báo</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.option}>
-                                    <Image
-                                        source={require("../assets/icons/profile-security.png")}
-                                        style={styles.icon}
-                                    ></Image>
-                                    <Text style={styles.textLarge}>Bảo mật</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.option}>
-                                    <Image
-                                        source={require("../assets/icons/profile-help.png")}
-                                        style={styles.icon}
-                                    ></Image>
-                                    <Text style={styles.textLarge}>Trợ giúp</Text>
-                                </TouchableOpacity>
                                 <TouchableOpacity style={styles.option} onPress={() => {
                                     signOut();
                                     deleteToken(token);
