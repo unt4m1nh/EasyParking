@@ -172,10 +172,11 @@ function MapScreen({navigation}) {
     return datetime;
   };
 
-  const requestBooking = () => {
+  const requestBooking = (nameParking) => {
     var datetime = getCurrentDateTime();
     var dateSplit = datetime.split(' ');
     console.log(dateSplit);
+    setShowSpinner(true);
     var requestBody = {
       Username: userContext.name,
       Parking: pData.nameParking,
@@ -200,8 +201,9 @@ function MapScreen({navigation}) {
         }
       })
       .then(data => {
+        setShowSpinner(false);
         setMessageType('Thành công');
-        setMessage(`Yêu cầu đặt chỗ thành công tại ${parking}`);
+        setMessage(`Yêu cầu đặt chỗ thành công tại ${nameParking}`);
         setModalVisible(true);
         setSlot(data.reservation);
       })
@@ -361,7 +363,12 @@ function MapScreen({navigation}) {
   }
 
   return (
-    <View style={{marginTop: 0, flex: 1}}>
+    <View style={{marginTop: 0, flex: 1, opacity: showSpinner ? 0.5 : 1}}>
+      {
+        showSpinner && (
+          <View style={{width: '100%', height: '100%'}}><ActivityIndicator size='large' style={{margin: 'auto'}} /></View>
+        )
+      }
       <MapView
         ref={mapViewRef}
         provider={PROVIDER_GOOGLE} // remove if not using Google Maps
@@ -733,7 +740,7 @@ function MapScreen({navigation}) {
                   getRouteFromApi();
                   getCurrentDateTime();
                   setParking(pData.nameParking);
-                  requestBooking();
+                  requestBooking(pData.nameParking);
                   setBooking(false);
                   setShowDirection(true);
                   setShowRoutes(true);
